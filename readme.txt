@@ -55,11 +55,13 @@ Find more at RGraph site: http://www.rgraph.net/
 
 
 == Changelog ==
-
+= 2.0 =
+* Updated to RGraph version 1st June 2013
 = 1.0 =
 * Initial plugin release, based on RGraph plugin (http://wordpress.org/extend/plugins/rgraph/)
 
 == Upgrade Notice ==
-
+= 2.0 =
+Using RGraph version 1st June 2013
 = 1.0 = 
 * Enjoy it! Using RGraph version 31st March 2013

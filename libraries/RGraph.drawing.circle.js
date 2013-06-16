@@ -135,268 +135,292 @@
 
 
 
+
+        ///////////////////////////////// SHORT PROPERTIES /////////////////////////////////
+
+
+
+
+        var RG   = RGraph;
+        var ca   = this.canvas;
+        var co   = ca.getContext('2d');
+        var prop = this.properties;
+
+
+
+
+        //////////////////////////////////// METHODS ///////////////////////////////////////
+
+
+
+
+        /**
+        * A setter method for setting graph properties. It can be used like this: obj.Set('chart.strokestyle', '#666');
+        * 
+        * @param name  string The name of the property to set
+        * @param value mixed  The value of the property
+        */
+        this.Set = function (name, value)
+        {
+            name = name.toLowerCase();
+    
+            /**
+            * This should be done first - prepend the propertyy name with "chart." if necessary
+            */
+            if (name.substr(0,6) != 'chart.') {
+                name = 'chart.' + name;
+            }
+    
+            prop[name] = value;
+    
+            return this;
+        }
+
+
+
+
+        /**
+        * A getter method for retrieving graph properties. It can be used like this: obj.Get('chart.strokestyle');
+        * 
+        * @param name  string The name of the property to get
+        */
+        this.Get = function (name)
+        {
+            /**
+            * This should be done first - prepend the property name with "chart." if necessary
+            */
+            if (name.substr(0,6) != 'chart.') {
+                name = 'chart.' + name;
+            }
+    
+            return prop[name.toLowerCase()];
+        }
+
+
+
+
+        /**
+        * Draws the circle
+        */
+        this.Draw = function ()
+        {
+            /**
+            * Fire the onbeforedraw event
+            */
+            RG.FireCustomEvent(this, 'onbeforedraw');
+    
+    
+            /**
+            * Parse the colors. This allows for simple gradient syntax
+            */
+            if (!this.colorsParsed) {
+    
+                this.parseColors();
+    
+                // Don't want to do this again
+                this.colorsParsed = true;
+            }
+    
+    
+            co.beginPath();
+    
+                co.strokeStyle = prop['chart.strokestyle'];
+                co.fillStyle = prop['chart.fillstyle'];
+                co.lineWidth = prop['chart.linewidth'];
+                
+                if (prop['chart.shadow']) {
+                    RG.SetShadow(this, prop['chart.shadow.color'], prop['chart.shadow.offsetx'], prop['chart.shadow.offsety'], prop['chart.shadow.blur']);
+                }
+    
+                co.arc(this.coords[0][0], this.coords[0][1], this.radius, 0, TWOPI, false);
+    
+            co.fill();
+            co.stroke();
+            
+            // Must turn the shadow off before the fill is done
+            RG.NoShadow(this);
+    
+    
+            /**
+            * This installs the event listeners
+            */
+            RG.InstallEventListeners(this);
+    
+    
+            /**
+            * Fire the ondraw event
+            */
+            RG.FireCustomEvent(this, 'ondraw');
+            
+            return this;
+        }
+
+
+
+
+        /**
+        * The getObjectByXY() worker method
+        */
+        this.getObjectByXY = function (e)
+        {
+            if (this.getShape(e)) {
+                return this;
+            }
+        }
+
+
+
+
+        /**
+        * Not used by the class during creating the shape, but is used by event handlers
+        * to get the coordinates (if any) of the selected bar
+        * 
+        * @param object e The event object
+        * @param object   OPTIONAL You can pass in the bar object instead of the
+        *                          function using "this"
+        */
+        this.getShape = function (e)
+        {
+            var mouseXY = RGraph.getMouseXY(e);
+            var mouseX  = mouseXY[0];
+            var mouseY  = mouseXY[1];
+    
+            if (RG.getHypLength(this.centerx, this.centery, mouseXY[0], mouseXY[1]) <= this.radius) {
+                
+                return {
+                        0: this, 1: this.centerx, 2: this.centery, 3: this.radius, 4: null, 5: 0,
+                        'object': this, 'x': this.centerx, 'y': this.centery, 'radius': this.radius, 'index': 0, 'tooltip': prop['chart.tooltips'] ? prop['chart.tooltips'][0] : null
+                       };
+            }
+            
+            return null;
+        }
+
+
+
+
+        /**
+        * This function positions a tooltip when it is displayed
+        * 
+        * @param obj object    The chart object
+        * @param int x         The X coordinate specified for the tooltip
+        * @param int y         The Y coordinate specified for the tooltip
+        * @param objec tooltip The tooltips DIV element
+        */
+        this.positionTooltip = function (obj, x, y, tooltip, idx)
+        {
+            var canvasXY   = RG.getCanvasXY(obj.canvas);
+            var width      = tooltip.offsetWidth;
+            var height     = tooltip.offsetHeight;
+            var radius     = this.radius;
+    
+            // Set the top position
+            tooltip.style.left = 0;
+            tooltip.style.top  = canvasXY[1] + obj.centery - height - 7 + 'px';
+            
+            // By default any overflow is hidden
+            tooltip.style.overflow = '';
+    
+            // The arrow
+            var img = new Image();
+                img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAFCAYAAACjKgd3AAAARUlEQVQYV2NkQAN79+797+RkhC4M5+/bd47B2dmZEVkBCgcmgcsgbAaA9GA1BCSBbhAuA/AagmwQPgMIGgIzCD0M0AMMAEFVIAa6UQgcAAAAAElFTkSuQmCC';
+                img.style.position = 'absolute';
+                img.id = '__rgraph_tooltip_pointer__';
+                img.style.top = (tooltip.offsetHeight - 2) + 'px';
+            tooltip.appendChild(img);
+            
+            // Reposition the tooltip if at the edges:
+            
+            // LEFT edge
+            if ((canvasXY[0] + obj.centerx - (width / 2)) < 10) {
+                tooltip.style.left = (canvasXY[0] + this.centerx - (width * 0.1))  + 'px';
+                img.style.left = ((width * 0.1) - 8.5) + 'px';
+    
+            // RIGHT edge
+            } else if ((canvasXY[0] + obj.centerx + (width / 2)) > document.body.offsetWidth) {
+                tooltip.style.left = canvasXY[0] + this.centerx - (width * 0.9) + 'px';
+                img.style.left = ((width * 0.9) - 8.5) + 'px';
+    
+            // Default positioning - CENTERED
+            } else {
+                tooltip.style.left = (canvasXY[0] + this.centerx - (width * 0.5)) + 'px';
+                img.style.left = ((width * 0.5) - 8.5) + 'px';
+            }
+        }
+
+
+
+
+        /**
+        * Each object type has its own Highlight() function which highlights the appropriate shape
+        * 
+        * @param object shape The shape to highlight
+        */
+        this.Highlight = function (shape)
+        {
+            if (prop['chart.tooltips.highlight']) {
+                co.beginPath();
+                    co.strokeStyle = prop['chart.highlight.stroke'];
+                    co.fillStyle = prop['chart.highlight.fill'];
+                    co.arc(this.centerx, this.centery, this.radius + 0.5, 0, TWOPI, false);
+                co.fill();
+                co.stroke();
+            }
+        }
+
+
+
+
+        /**
+        * This allows for easy specification of gradients
+        */
+        this.parseColors = function ()
+        {
+            /**
+            * Parse various properties for colors
+            */
+            prop['chart.fillstyle']        = this.parseSingleColorForGradient(prop['chart.fillstyle']);
+            prop['chart.strokestyle']      = this.parseSingleColorForGradient(prop['chart.strokestyle']);
+            prop['chart.highlight.stroke'] = this.parseSingleColorForGradient(prop['chart.highlight.stroke']);
+            prop['chart.highlight.fill']   = this.parseSingleColorForGradient(prop['chart.highlight.fill']);
+        }
+
+
+
+
+        /**
+        * This parses a single color value
+        */
+        this.parseSingleColorForGradient = function (color)
+        {
+            if (!color) {
+                return color;
+            }
+    
+            if (color.match(/^gradient\((.*)\)$/i)) {
+    
+                var parts = RegExp.$1.split(':');
+    
+                // Create the gradient
+                var grad = co.createLinearGradient(0,0,ca.width,0);
+    
+                var diff = 1 / (parts.length - 1);
+    
+                grad.addColorStop(0, RGraph.trim(parts[0]));
+    
+                for (var j=1; j<parts.length; ++j) {
+                    grad.addColorStop(j * diff, RG.trim(parts[j]));
+                }
+            }
+    
+            return grad ? grad : color;
+        }
+
+
+
+
         /**
         * Objects are now always registered so that the chart is redrawn if need be.
         */
-        RGraph.Register(this);
-    }
-
-
-
-
-    /**
-    * A setter method for setting graph properties. It can be used like this: obj.Set('chart.strokestyle', '#666');
-    * 
-    * @param name  string The name of the property to set
-    * @param value mixed  The value of the property
-    */
-    RGraph.Drawing.Circle.prototype.Set = function (name, value)
-    {
-        name = name.toLowerCase();
-
-        /**
-        * This should be done first - prepend the propertyy name with "chart." if necessary
-        */
-        if (name.substr(0,6) != 'chart.') {
-            name = 'chart.' + name;
-        }
-
-        this.properties[name] = value;
-
-        return this;
-    }
-
-
-
-
-    /**
-    * A getter method for retrieving graph properties. It can be used like this: obj.Get('chart.strokestyle');
-    * 
-    * @param name  string The name of the property to get
-    */
-    RGraph.Drawing.Circle.prototype.Get = function (name)
-    {
-        /**
-        * This should be done first - prepend the property name with "chart." if necessary
-        */
-        if (name.substr(0,6) != 'chart.') {
-            name = 'chart.' + name;
-        }
-
-        return this.properties[name.toLowerCase()];
-    }
-
-
-
-
-    /**
-    * Draws the circle
-    */
-    RGraph.Drawing.Circle.prototype.Draw = function ()
-    {
-        /**
-        * Fire the onbeforedraw event
-        */
-        RGraph.FireCustomEvent(this, 'onbeforedraw');
-
-
-        /**
-        * Parse the colors. This allows for simple gradient syntax
-        */
-        if (!this.colorsParsed) {
-
-            this.parseColors();
-
-            // Don't want to do this again
-            this.colorsParsed = true;
-        }
-
-
-        this.context.beginPath();
-
-            this.context.strokeStyle = this.properties['chart.strokestyle'];
-            this.context.fillStyle = this.properties['chart.fillstyle'];
-            this.context.lineWidth = this.properties['chart.linewidth'];
-            
-            if (this.properties['chart.shadow']) {
-                RGraph.SetShadow(this, this.properties['chart.shadow.color'], this.properties['chart.shadow.offsetx'], this.properties['chart.shadow.offsety'], this.properties['chart.shadow.blur']);
-            }
-
-            this.context.arc(this.coords[0][0], this.coords[0][1], this.radius, 0, TWOPI, false);
-
-        this.context.fill();
-        this.context.stroke();
-        
-        // Must turn the shadow off before the fill is done
-        RGraph.NoShadow(this);
-
-
-        /**
-        * This installs the event listeners
-        */
-        RGraph.InstallEventListeners(this);
-
-
-        /**
-        * Fire the ondraw event
-        */
-        RGraph.FireCustomEvent(this, 'ondraw');
-        
-        return this;
-    }
-
-
-
-    /**
-    * The getObjectByXY() worker method
-    */
-    RGraph.Drawing.Circle.prototype.getObjectByXY = function (e)
-    {
-        if (this.getShape(e)) {
-            return this;
-        }
-    }
-
-
-
-    /**
-    * Not used by the class during creating the shape, but is used by event handlers
-    * to get the coordinates (if any) of the selected bar
-    * 
-    * @param object e The event object
-    * @param object   OPTIONAL You can pass in the bar object instead of the
-    *                          function using "this"
-    */
-    RGraph.Drawing.Circle.prototype.getShape = function (e)
-    {
-        var mouseXY = RGraph.getMouseXY(e);
-        var mouseX  = mouseXY[0];
-        var mouseY  = mouseXY[1];
-
-        if (RGraph.getHypLength(this.centerx, this.centery, mouseXY[0], mouseXY[1]) <= this.radius) {
-            
-            return {
-                    0: this, 1: this.centerx, 2: this.centery, 3: this.radius, 4: null, 5: 0,
-                    'object': this, 'x': this.centerx, 'y': this.centery, 'radius': this.radius, 'index': 0, 'tooltip': this.properties['chart.tooltips'] ? this.properties['chart.tooltips'][0] : null
-                   };
-        }
-        
-        return null;
-    }
-
-
-
-    /**
-    * This function positions a tooltip when it is displayed
-    * 
-    * @param obj object    The chart object
-    * @param int x         The X coordinate specified for the tooltip
-    * @param int y         The Y coordinate specified for the tooltip
-    * @param objec tooltip The tooltips DIV element
-    */
-    RGraph.Drawing.Circle.prototype.positionTooltip = function (obj, x, y, tooltip, idx)
-    {
-        var canvasXY   = RGraph.getCanvasXY(obj.canvas);
-        var width      = tooltip.offsetWidth;
-        var height     = tooltip.offsetHeight;
-        var radius     = this.radius;
-
-        // Set the top position
-        tooltip.style.left = 0;
-        tooltip.style.top  = canvasXY[1] + obj.centery - height - 7 + 'px';
-        
-        // By default any overflow is hidden
-        tooltip.style.overflow = '';
-
-        // The arrow
-        var img = new Image();
-            img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAFCAYAAACjKgd3AAAARUlEQVQYV2NkQAN79+797+RkhC4M5+/bd47B2dmZEVkBCgcmgcsgbAaA9GA1BCSBbhAuA/AagmwQPgMIGgIzCD0M0AMMAEFVIAa6UQgcAAAAAElFTkSuQmCC';
-            img.style.position = 'absolute';
-            img.id = '__rgraph_tooltip_pointer__';
-            img.style.top = (tooltip.offsetHeight - 2) + 'px';
-        tooltip.appendChild(img);
-        
-        // Reposition the tooltip if at the edges:
-        
-        // LEFT edge
-        if ((canvasXY[0] + obj.centerx - (width / 2)) < 10) {
-            tooltip.style.left = (canvasXY[0] + this.centerx - (width * 0.1))  + 'px';
-            img.style.left = ((width * 0.1) - 8.5) + 'px';
-
-        // RIGHT edge
-        } else if ((canvasXY[0] + obj.centerx + (width / 2)) > document.body.offsetWidth) {
-            tooltip.style.left = canvasXY[0] + this.centerx - (width * 0.9) + 'px';
-            img.style.left = ((width * 0.9) - 8.5) + 'px';
-
-        // Default positioning - CENTERED
-        } else {
-            tooltip.style.left = (canvasXY[0] + this.centerx - (width * 0.5)) + 'px';
-            img.style.left = ((width * 0.5) - 8.5) + 'px';
-        }
-    }
-
-
-
-    /**
-    * Each object type has its own Highlight() function which highlights the appropriate shape
-    * 
-    * @param object shape The shape to highlight
-    */
-    RGraph.Drawing.Circle.prototype.Highlight = function (shape)
-    {
-        this.context.beginPath();
-            this.context.strokeStyle = this.properties['chart.highlight.stroke'];
-            this.context.fillStyle = this.properties['chart.highlight.fill'];
-            this.context.arc(this.centerx, this.centery, this.radius + 0.5, 0, TWOPI, false);
-        this.context.fill();
-        this.context.stroke();
-    }
-
-
-
-    /**
-    * This allows for easy specification of gradients
-    */
-    RGraph.Drawing.Circle.prototype.parseColors = function ()
-    {
-        /**
-        * Parse various properties for colors
-        */
-        this.properties['chart.fillstyle']        = this.parseSingleColorForGradient(this.properties['chart.fillstyle']);
-        this.properties['chart.strokestyle']      = this.parseSingleColorForGradient(this.properties['chart.strokestyle']);
-        this.properties['chart.highlight.stroke'] = this.parseSingleColorForGradient(this.properties['chart.highlight.stroke']);
-        this.properties['chart.highlight.fill']   = this.parseSingleColorForGradient(this.properties['chart.highlight.fill']);
-    }
-
-
-
-    /**
-    * This parses a single color value
-    */
-    RGraph.Drawing.Circle.prototype.parseSingleColorForGradient = function (color)
-    {
-        var canvas  = this.canvas;
-        var context = this.context;
-        
-        if (!color) {
-            return color;
-        }
-
-        if (color.match(/^gradient\((.*)\)$/i)) {
-
-            var parts = RegExp.$1.split(':');
-
-            // Create the gradient
-            var grad = context.createLinearGradient(0,0,canvas.width,0);
-
-            var diff = 1 / (parts.length - 1);
-
-            grad.addColorStop(0, RGraph.trim(parts[0]));
-
-            for (var j=1; j<parts.length; ++j) {
-                grad.addColorStop(j * diff, RGraph.trim(parts[j]));
-            }
-        }
-
-        return grad ? grad : color;
+        RG.Register(this);
     }

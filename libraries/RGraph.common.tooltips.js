@@ -17,7 +17,6 @@
     /**
     * This is used in two functions, hence it's here
     */
-    RGraph.Highlight          = {};
     RGraph.tooltips           = {};
     RGraph.tooltips.padding   = '3px';
     RGraph.tooltips.font_face = 'Tahoma';
@@ -462,63 +461,7 @@
 
 
 
-    /**
-    * This function highlights a rectangle
-    * 
-    * @param object obj    The chart object
-    * @param number shape  The coordinates of the rect to highlight
-    */
-    RGraph.Highlight.Rect = function (obj, shape)
-    {
-        if (obj.Get('chart.tooltips.highlight')) {
-            
-            var canvas  = obj.canvas;
-            var context = obj.context;
-        
-            // Safari seems to need this
-            obj.context.lineWidth = 1;
 
-            /**
-            * Draw a rectangle on the canvas to highlight the appropriate area
-            */
-            context.beginPath();
-
-                context.strokeStyle = obj.Get('chart.highlight.stroke');
-                context.fillStyle   = obj.Get('chart.highlight.fill');
-    
-                context.strokeRect(shape['x'],shape['y'],shape['width'],shape['height']);
-                context.fillRect(shape['x'],shape['y'],shape['width'],shape['height']);
-            context.stroke;
-            context.fill();
-        }
-    }
-
-
-
-    /**
-    * This function highlights a point
-    * 
-    * @param object obj    The chart object
-    * @param number shape  The coordinates of the rect to highlight
-    */
-    RGraph.Highlight.Point = function (obj, shape)
-    {
-        if (obj.Get('chart.tooltips.highlight')) {
-            var canvas  = obj.canvas;
-            var context = obj.context;
-    
-            /**
-            * Draw a rectangle on the canvas to highlight the appropriate area
-            */
-            context.beginPath();
-                context.strokeStyle = obj.Get('chart.highlight.stroke');
-                context.fillStyle   = obj.Get('chart.highlight.fill');
-                var radius   = obj.Get('chart.highlight.point.radius') || 2;
-                context.arc(shape['x'],shape['y'],radius, 0, TWOPI, 0);
-            context.stroke();
-            context.fill();
-        }
-    }
 
 
 
@@ -573,6 +516,7 @@
             }
         }
     }
+
 
 
 

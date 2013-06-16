@@ -23,30 +23,35 @@
     */
     RGraph.DrawKey = function (obj, key, colors)
     {
-        var canvas  = obj.canvas;
-        var context = obj.context;
-        context.lineWidth = 1;
+        if (!key) {
+            return;
+        }
 
-        context.beginPath();
+        var RG   = RGraph,
+            ca   = obj.canvas,
+            co   = obj.context,
+            prop = obj.properties,
 
-        /**
-        * Key positioned in the gutter
-        */
-        var keypos   = obj.Get('chart.key.position');
-        var textsize = obj.Get('chart.text.size');
+            // Key positioned in the gutter
+            keypos   = prop['chart.key.position'],
+            textsize = prop['chart.text.size'],
+            key_non_null    = [],
+            colors_non_null = [];
+
+        co.lineWidth = 1;
+
+        co.beginPath();
 
         /**
         * Change the older chart.key.vpos to chart.key.position.y
         */
-        if (typeof(obj.Get('chart.key.vpos')) == 'number') {
-            obj.Set('chart.key.position.y', obj.Get('chart.key.vpos') * this.Get('chart.gutter.top') );
+        if (typeof(prop['chart.key.vpos']) == 'number') {
+            obj.Set('chart.key.position.y', prop['chart.key.vpos'] * prop['chart.gutter.top']);
         }
 
         /**
         * Account for null values in the key
         */
-        var key_non_null    = [];
-        var colors_non_null = [];
         for (var i=0; i<key.length; ++i) {
             if (key[i] != null) {
                 colors_non_null.push(colors[i]);
@@ -59,539 +64,520 @@
 
 
 
-        if (keypos && keypos == 'gutter') {
-    
-            RGraph.DrawKey_gutter(obj, key, colors);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         /**
-        * In-graph style key
+        * This does the actual drawing of the key when it's in the graph
+        * 
+        * @param object obj The graph object
+        * @param array  key The key items to draw
+        * @param array colors An aray of colors that the key will use
         */
-        } else if (keypos && keypos == 'graph') {
-
-            RGraph.DrawKey_graph(obj, key, colors);
+        function DrawKey_graph (obj, key, colors)
+        {
+            var text_size    = typeof(prop['chart.key.text.size']) == 'number' ? prop['chart.key.text.size'] : prop['chart.text.size'];
+            var text_font    = prop['chart.text.font'];
+            var gutterLeft   = obj.gutterLeft;
+            var gutterRight  = obj.gutterRight;
+            var gutterTop    = obj.gutterTop;
+            var gutterBottom = obj.gutterBottom;
+            var hpos         = prop['chart.yaxispos'] == 'right' ? gutterLeft + 10 : ca.width - gutterRight - 10;
+            var vpos         = gutterTop + 10;
+            var title        = prop['chart.title'];
+            var blob_size    = text_size; // The blob of color
+            var hmargin      = 8; // This is the size of the gaps between the blob of color and the text
+            var vmargin      = 4; // This is the vertical margin of the key
+            var fillstyle    = prop['chart.key.background'];
+            var strokestyle  = '#333';
+            var height       = 0;
+            var width        = 0;
+    
+            if (!obj.coords) obj.coords = {};
+            obj.coords.key = [];
+    
+    
+            // Need to set this so that measuring the text works out OK
+            co.font = text_size + 'pt ' + prop['chart.text.font'];
+    
+            // Work out the longest bit of text
+            for (i=0; i<key.length; ++i) {
+                width = Math.max(width, co.measureText(key[i]).width);
+            }
+    
+            width += 5;
+            width += blob_size;
+            width += 5;
+            width += 5;
+            width += 5;
+    
+            /**
+            * Now we know the width, we can move the key left more accurately
+            */
+            if (   prop['chart.yaxispos'] == 'left'
+                || (obj.type == 'pie' && !prop['chart.yaxispos'])
+                || (obj.type == 'hbar' && !prop['chart.yaxispos'])
+                || (obj.type == 'hbar' && prop['chart.yaxispos'] == 'center')
+                || (obj.type == 'rscatter' && !prop['chart.yaxispos'])
+                || (obj.type == 'radar' && !prop['chart.yaxispos'])
+                || (obj.type == 'rose' && !prop['chart.yaxispos'])
+                || (obj.type == 'funnel' && !prop['chart.yaxispos'])
+                || (obj.type == 'vprogress' && !prop['chart.yaxispos'])
+                || (obj.type == 'hprogress' && !prop['chart.yaxispos'])
+               ) {
+    
+                hpos -= width;
+            }
+    
+            /**
+            * Horizontal alignment
+            */
+            if (typeof(prop['chart.key.halign']) == 'string') {
+                if (prop['chart.key.halign'] == 'left') {
+                    hpos = gutterLeft + 10;
+                } else if (prop['chart.key.halign'] == 'right') {
+                    hpos = ca.width - gutterRight  - width;
+                }
+            }
+    
+            /**
+            * Specific location coordinates
+            */
+            if (typeof(prop['chart.key.position.x']) == 'number') {
+                hpos = prop['chart.key.position.x'];
+            }
+            
+            if (typeof(prop['chart.key.position.y']) == 'number') {
+                vpos = prop['chart.key.position.y'];
+            }
+    
+    
+            // Stipulate the shadow for the key box
+            if (prop['chart.key.shadow']) {
+                co.shadowColor   = prop['chart.key.shadow.color'];
+                co.shadowBlur    = prop['chart.key.shadow.blur'];
+                co.shadowOffsetX = prop['chart.key.shadow.offsetx'];
+                co.shadowOffsetY = prop['chart.key.shadow.offsety'];
+            }
+    
+    
+    
+    
+            // Draw the box that the key resides in
+            co.beginPath();
+                co.fillStyle   = prop['chart.key.background'];
+                co.strokeStyle = 'black';
+    
+            if (typeof(prop['chart.key.position.graph.boxed']) == 'undefined' || (typeof(prop['chart.key.position.graph.boxed']) == 'boolean' && prop['chart.key.position.graph.boxed']) ) {
+                if (arguments[3] != false) {
         
+                    co.lineWidth = typeof(prop['chart.key.linewidth']) == 'number' ? prop['chart.key.linewidth'] : 1;
+    
+                    // The older square rectangled key
+                    if (prop['chart.key.rounded'] == true) {
+                        co.beginPath();
+                            co.strokeStyle = strokestyle;
+                            RG.strokedCurvyRect(co, Math.round(hpos), Math.round(vpos), width - 5, 5 + ( (text_size + 5) * RG.getKeyLength(key)),4);
+                        co.stroke();
+                        co.fill();
+    
+                        RG.NoShadow(obj);
+                
+                    } else {
+                        co.strokeRect(Math.round(hpos), Math.round(vpos), width - 5, 5 + ( (text_size + 5) * RG.getKeyLength(key)));
+                        co.fillRect(Math.round(hpos), Math.round(vpos), width - 5, 5 + ( (text_size + 5) * RG.getKeyLength(key)));
+                    }
+                }
+            }
+    
+            RG.NoShadow(obj);
+    
+            co.beginPath();
+    
+                /**
+                * Custom colors for the key
+                */
+                if (prop['chart.key.colors']) {
+                    colors = prop['chart.key.colors'];
+                }
+    
+    
+    
+                ////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    
+                // Draw the labels given
+                for (var i=key.length - 1; i>=0; i--) {
+                
+                    var j = Number(i) + 1;
+    
+                    /**
+                    * Draw the blob of color
+                    */
+                    if (typeof(prop['chart.key.color.shape']) == 'object' && typeof(prop['chart.key.color.shape'][i]) == 'string') {
+                        var blob_shape = prop['chart.key.color.shape'][i];
+                    
+                    } else if (typeof(prop['chart.key.color.shape']) == 'string') {
+                        var blob_shape = prop['chart.key.color.shape'];
+                    } else {
+                        var blob_shape = 'square';
+                    }
+                    
+                    if (blob_shape == 'circle') {
+                        co.beginPath();
+                            co.fillStyle = colors[i];
+                            co.arc(hpos + 5 + (blob_size / 2), vpos + (5 * j) + (text_size * j) - text_size + (blob_size / 2), blob_size / 2, 0, 6.26, 0);
+                        co.fill();
+                    
+                    } else if (blob_shape == 'line') {
+                        co.beginPath();
+                            co.strokeStyle = colors[i];
+                            co.moveTo(hpos + 5, vpos + (5 * j) + (text_size * j) - text_size + (blob_size / 2));
+                            co.lineTo(hpos + blob_size + 5, vpos + (5 * j) + (text_size * j) - text_size + (blob_size / 2));
+                        co.stroke();
+                    
+                    } else if (blob_shape == 'triangle') {
+                        co.beginPath();
+                            co.strokeStyle = colors[i];
+                            co.moveTo(hpos + 5, vpos + (5 * j) + (text_size * j) - text_size + blob_size);
+                            co.lineTo(hpos + (blob_size / 2) + 5, vpos + (5 * j) + (text_size * j) - text_size );
+                            co.lineTo(hpos + blob_size + 5, vpos + (5 * j) + (text_size * j) - text_size + blob_size);
+                        co.closePath();
+                        co.fillStyle =  colors[i];
+                        co.fill();
+                    
+                    } else {
+                        co.fillStyle =  colors[i];
+                        co.fillRect(hpos + 5, vpos + (5 * j) + (text_size * j) - text_size, text_size, text_size + 1);
+                    }
+                    
+                    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    
+                    co.beginPath();
+                    co.fillStyle = 'black';
+                
+                    ret = RG.Text2(obj, {'font': text_font,
+                                         'size': text_size,
+                                         'x': hpos + blob_size + 5 + 5,
+                                         'y': vpos + (5 * j) + (text_size * j) + 3,
+                                         'text': key[i]});
+
+                    obj.coords.key[i] = [ret.x, ret.y, ret.width, ret.height, key[i], colors[i], obj];
+                }
+            co.fill();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /**
+        * This does the actual drawing of the key when it's in the gutter
+        * 
+        * @param object obj The graph object
+        * @param array  key The key items to draw
+        * @param array colors An aray of colors that the key will use
+        */
+        function DrawKey_gutter (obj, key, colors)
+        {
+            var text_size    = typeof(prop['chart.key.text.size']) == 'number' ? prop['chart.key.text.size'] : prop['chart.text.size'],
+                text_font    = prop['chart.text.font'],
+                gutterLeft   = obj.gutterLeft,
+                gutterRight  = obj.gutterRight,
+                gutterTop    = obj.gutterTop,
+                gutterBottom = obj.gutterBottom,
+                hpos         = ((ca.width - gutterLeft - gutterRight) / 2) + obj.gutterLeft,
+                vpos         = gutterTop - text_size - 5,
+                title        = prop['chart.title'],
+                blob_size    = text_size, // The blob of color
+                hmargin      = 8, // This is the size of the gaps between the blob of color and the text
+                vmargin      = 4, // This is the vertical margin of the key
+                fillstyle    = prop['chart.key.background'],
+                strokestyle  = '#999'
+                length       = 0;
+            
+            if (!obj.coords) obj.coords = {};
+            obj.coords.key = [];
+    
+    
+    
+            // Need to work out the length of the key first
+            co.font = text_size + 'pt ' + text_font;
+            for (i=0; i<key.length; ++i) {
+                length += hmargin;
+                length += blob_size;
+                length += hmargin;
+                length += co.measureText(key[i]).width;
+            }
+            length += hmargin;
+    
+    
+    
+    
+            /**
+            * Work out hpos since in the Pie it isn't necessarily dead center
+            */
+            if (obj.type == 'pie') {
+                if (prop['chart.align'] == 'left') {
+                    var hpos = obj.radius + gutterLeft;
+                    
+                } else if (prop['chart.align'] == 'right') {
+                    var hpos = ca.width - obj.radius - gutterRight;
+    
+                } else {
+                    hpos = ca.width / 2;
+                }
+            }
+    
+    
+    
+    
+    
+            /**
+            * This makes the key centered
+            */  
+            hpos -= (length / 2);
+    
+    
+            /**
+            * Override the horizontal/vertical positioning
+            */
+            if (typeof(prop['chart.key.position.x']) == 'number') {
+                hpos = prop['chart.key.position.x'];
+            }
+            if (typeof(prop['chart.key.position.y']) == 'number') {
+                vpos = prop['chart.key.position.y'];
+            }
+    
+    
+    
+            /**
+            * Draw the box that the key sits in
+            */
+            if (obj.Get('chart.key.position.gutter.boxed')) {
+    
+                if (prop['chart.key.shadow']) {
+                    co.shadowColor   = prop['chart.key.shadow.color'];
+                    co.shadowBlur    = prop['chart.key.shadow.blur'];
+                    co.shadowOffsetX = prop['chart.key.shadow.offsetx'];
+                    co.shadowOffsetY = prop['chart.key.shadow.offsety'];
+                }
+    
+                
+                co.beginPath();
+                    co.fillStyle = fillstyle;
+                    co.strokeStyle = strokestyle;
+    
+                    if (prop['chart.key.rounded']) {
+                        RG.strokedCurvyRect(co, hpos, vpos - vmargin, length, text_size + vmargin + vmargin)
+                        // Odd... RG.filledCurvyRect(co, hpos, vpos - vmargin, length, text_size + vmargin + vmargin);
+                    } else {
+                        co.rect(hpos, vpos - vmargin, length, text_size + vmargin + vmargin);
+                    }
+                    
+                co.stroke();
+                co.fill();
+    
+    
+                RG.NoShadow(obj);
+            }
+    
+    
+            /**
+            * Draw the blobs of color and the text
+            */
+    
+            // Custom colors for the key
+            if (prop['chart.key.colors']) {
+                colors = prop['chart.key.colors'];
+            }
+    
+            for (var i=0, pos=hpos; i<key.length; ++i) {
+                pos += hmargin;
+    
+    
+    
+                //////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    
+                // Draw the blob of color
+                if (typeof(prop['chart.key.color.shape']) == 'object' && typeof(prop['chart.key.color.shape'][i]) == 'string') {
+                    var blob_shape = prop['chart.key.color.shape'][i];
+                
+                } else if (typeof(prop['chart.key.color.shape']) == 'string') {
+                    var blob_shape = prop['chart.key.color.shape'];
+                
+                } else {
+                    var blob_shape = 'square';
+                }
+    
+    
+                /**
+                * Draw the blob of color - line
+                */
+                if (blob_shape =='line') {
+                    
+                    co.beginPath();
+                        co.strokeStyle = colors[i];
+                        co.moveTo(pos, vpos + (blob_size / 2));
+                        co.lineTo(pos + blob_size, vpos + (blob_size / 2));
+                    co.stroke();
+                    
+                // Circle
+                } else if (blob_shape == 'circle') {
+                    
+                    co.beginPath();
+                        co.fillStyle = colors[i];
+                        co.moveTo(pos, vpos + (blob_size / 2));
+                        co.arc(pos + (blob_size / 2), vpos + (blob_size / 2), (blob_size / 2), 0, 6.28, 0);
+                    co.fill();
+                
+                } else if (blob_shape == 'triangle') {
+                
+                    co.fillStyle = colors[i];
+                    co.beginPath();
+                        co.strokeStyle = colors[i];
+                        co.moveTo(pos, vpos + blob_size);
+                        co.lineTo(pos + (blob_size / 2), vpos);
+                        co.lineTo(pos + blob_size, vpos + blob_size);
+                    co.closePath();
+                    co.fill();
+                
+                } else {
+                
+                    co.beginPath();
+                        co.fillStyle = colors[i];
+                        co.rect(pos, vpos, blob_size, blob_size);
+                    co.fill();
+                }
+    
+    
+    
+                //////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    
+    
+                pos += blob_size;
+                
+                pos += hmargin;
+    
+                co.beginPath();
+                    co.fillStyle = 'black';
+                    var ret = RG.Text2(obj, {'font':text_font,'size':text_size,'x':pos,'y':vpos + text_size + 3, 'text': key[i]});
+                co.fill();
+                pos += co.measureText(key[i]).width;
+                
+                obj.coords.key[i] = [ret.x, ret.y, ret.width, ret.height, key[i], colors[i], obj];
+            }
+        }
+
+
+
+
+        if (keypos && keypos == 'gutter') {
+            DrawKey_gutter(obj, key, colors);
+        } else if (keypos && keypos == 'graph') {
+            DrawKey_graph(obj, key, colors);
         } else {
             alert('[COMMON] (' + obj.id + ') Unknown key position: ' + keypos);
         }
-    }
 
 
 
 
 
-    /**
-    * This does the actual drawing of the key when it's in the graph
-    * 
-    * @param object obj The graph object
-    * @param array  key The key items to draw
-    * @param array colors An aray of colors that the key will use
-    */
-    RGraph.DrawKey_graph = function (obj, key, colors)
-    {
-        var canvas      = obj.canvas;
-        var context     = obj.context;
-        var text_size   = typeof(obj.Get('chart.key.text.size')) == 'number' ? obj.Get('chart.key.text.size') : obj.Get('chart.text.size');
-        var text_font   = obj.Get('chart.text.font');
-        
-        var gutterLeft   = obj.Get('chart.gutter.left');
-        var gutterRight  = obj.Get('chart.gutter.right');
-        var gutterTop    = obj.Get('chart.gutter.top');
-        var gutterBottom = obj.Get('chart.gutter.bottom');
 
-        var hpos        = obj.Get('chart.yaxispos') == 'right' ? gutterLeft + 10 : RGraph.GetWidth(obj) - gutterRight - 10;
-        var vpos        = gutterTop + 10;
-        var title       = obj.Get('chart.title');
-        var blob_size   = text_size; // The blob of color
-        var hmargin      = 8; // This is the size of the gaps between the blob of color and the text
-        var vmargin      = 4; // This is the vertical margin of the key
-        var fillstyle    = obj.Get('chart.key.background');
-        var strokestyle  = '#333';
-        var height       = 0;
-        var width        = 0;
+        if (prop['chart.key.interactive']) {
 
-        if (!obj.coords) obj.coords = {};
-        obj.coords.key = [];
-
-
-        // Need to set this so that measuring the text works out OK
-        context.font = text_size + 'pt ' + obj.Get('chart.text.font');
-
-        // Work out the longest bit of text
-        for (i=0; i<key.length; ++i) {
-            width = Math.max(width, context.measureText(key[i]).width);
-        }
-
-        width += 5;
-        width += blob_size;
-        width += 5;
-        width += 5;
-        width += 5;
-
-        /**
-        * Now we know the width, we can move the key left more accurately
-        */
-        if (   obj.Get('chart.yaxispos') == 'left'
-            || (obj.type == 'pie' && !obj.Get('chart.yaxispos'))
-            || (obj.type == 'hbar' && !obj.Get('chart.yaxispos'))
-            || (obj.type == 'hbar' && obj.Get('chart.yaxispos') == 'center')
-            || (obj.type == 'rscatter' && !obj.Get('chart.yaxispos'))
-            || (obj.type == 'radar' && !obj.Get('chart.yaxispos'))
-            || (obj.type == 'rose' && !obj.Get('chart.yaxispos'))
-            || (obj.type == 'funnel' && !obj.Get('chart.yaxispos'))
-            || (obj.type == 'vprogress' && !obj.Get('chart.yaxispos'))
-            || (obj.type == 'hprogress' && !obj.Get('chart.yaxispos'))
-           ) {
-
-            hpos -= width;
-        }
-
-        /**
-        * Horizontal alignment
-        */
-        if (typeof(obj.Get('chart.key.halign')) == 'string') {
-            if (obj.Get('chart.key.halign') == 'left') {
-                hpos = gutterLeft + 10;
-            } else if (obj.Get('chart.key.halign') == 'right') {
-                hpos = obj.canvas.width - gutterRight  - width;
-            }
-        }
-
-        /**
-        * Specific location coordinates
-        */
-        if (typeof(obj.Get('chart.key.position.x')) == 'number') {
-            hpos = obj.Get('chart.key.position.x');
-        }
-        
-        if (typeof(obj.Get('chart.key.position.y')) == 'number') {
-            vpos = obj.Get('chart.key.position.y');
-        }
-
-
-        // Stipulate the shadow for the key box
-        if (obj.Get('chart.key.shadow')) {
-            context.shadowColor   = obj.Get('chart.key.shadow.color');
-            context.shadowBlur    = obj.Get('chart.key.shadow.blur');
-            context.shadowOffsetX = obj.Get('chart.key.shadow.offsetx');
-            context.shadowOffsetY = obj.Get('chart.key.shadow.offsety');
-        }
-
-
-
-
-        // Draw the box that the key resides in
-        context.beginPath();
-            context.fillStyle   = obj.Get('chart.key.background');
-            context.strokeStyle = 'black';
-
-        if (typeof(obj.Get('chart.key.position.graph.boxed')) == 'undefined' || (typeof(obj.Get('chart.key.position.graph.boxed')) == 'boolean' && obj.Get('chart.key.position.graph.boxed')) ) {
-            if (arguments[3] != false) {
-    
-                context.lineWidth = typeof(obj.Get('chart.key.linewidth')) == 'number' ? obj.Get('chart.key.linewidth') : 1;
-
-                // The older square rectangled key
-                if (obj.Get('chart.key.rounded') == true) {
-                    context.beginPath();
-                        context.strokeStyle = strokestyle;
-                        RGraph.strokedCurvyRect(context, Math.round(hpos), Math.round(vpos), width - 5, 5 + ( (text_size + 5) * RGraph.getKeyLength(key)),4);
-                    context.stroke();
-                    context.fill();
-
-                    RGraph.NoShadow(obj);
-            
-                } else {
-                    context.strokeRect(Math.round(hpos), Math.round(vpos), width - 5, 5 + ( (text_size + 5) * RGraph.getKeyLength(key)));
-                    context.fillRect(Math.round(hpos), Math.round(vpos), width - 5, 5 + ( (text_size + 5) * RGraph.getKeyLength(key)));
-                }
-            }
-        }
-
-        RGraph.NoShadow(obj);
-
-        context.beginPath();
-
-            /**
-            * Custom colors for the key
-            */
-            if (obj.Get('chart.key.colors')) {
-                colors = obj.Get('chart.key.colors');
-            }
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-            // Draw the labels given
-            for (var i=key.length - 1; i>=0; i--) {
-            
-                var j = Number(i) + 1;
-
-/**
-* Draw the blob of color
-*/
-if (typeof(obj.properties['chart.key.color.shape']) == 'object' && typeof(obj.properties['chart.key.color.shape'][i]) == 'string') {
-    var blob_shape = obj.properties['chart.key.color.shape'][i];
-
-} else if (typeof(obj.properties['chart.key.color.shape']) == 'string') {
-    var blob_shape = obj.properties['chart.key.color.shape'];
-
-} else {
-    var blob_shape = 'square';
-}
-
-if (blob_shape == 'circle') {
-    context.beginPath();
-        context.fillStyle = colors[i];
-        context.arc(hpos + 5 + (blob_size / 2), vpos + (5 * j) + (text_size * j) - text_size + (blob_size / 2), blob_size / 2, 0, 6.26, 0);
-    context.fill();
-
-} else if (blob_shape == 'line') {
-    context.beginPath();
-        context.strokeStyle = colors[i];
-        context.moveTo(hpos + 5, vpos + (5 * j) + (text_size * j) - text_size + (blob_size / 2));
-        context.lineTo(hpos + blob_size + 5, vpos + (5 * j) + (text_size * j) - text_size + (blob_size / 2));
-    context.stroke();
-
-} else if (blob_shape == 'triangle') {
-    context.beginPath();
-        context.strokeStyle = colors[i];
-        context.moveTo(hpos + 5, vpos + (5 * j) + (text_size * j) - text_size + blob_size);
-        context.lineTo(hpos + (blob_size / 2) + 5, vpos + (5 * j) + (text_size * j) - text_size );
-        context.lineTo(hpos + blob_size + 5, vpos + (5 * j) + (text_size * j) - text_size + blob_size);
-    context.closePath();
-    context.fillStyle =  colors[i];
-    context.fill();
-
-} else {
-    context.fillStyle =  colors[i];
-    context.fillRect(hpos + 5, vpos + (5 * j) + (text_size * j) - text_size, text_size, text_size + 1);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-                context.beginPath();
-            
-                context.fillStyle = 'black';
-            
-                RGraph.Text2(obj, {'font':text_font,'size':text_size,'x':hpos + blob_size + 5 + 5,'y':vpos + (5 * j) + (text_size * j) + 3,'text':key[i]});
-
-                if (obj.Get('chart.key.interactive')) {
-                
-                    var px = hpos + 5;
-                    var py = vpos + (5 * j) + (text_size * j) - text_size;
-                    var pw = width - 5 - 5 - 5;
-                    var ph = text_size;
-                    
-                    
-                    obj.coords.key.push([px, py, pw, ph]);
-                }
-
-            }
-        context.fill();
-
-        /**
-        * Install the interactivity event handler
-        */
-        if (obj.Get('chart.key.interactive')) {
-        
-            InteractiveKey_line_mousemove = function (e)
-            {
-                var objects = RGraph.ObjectRegistry.getObjectsByCanvasID(e.target.id);
-
-                for (var i=0; i<objects.length; ++i) {
-                
-                    var obj = objects[i];
-
-                    var mouseXY = RGraph.getMouseXY(e);
-                    var mouseX  = mouseXY[0];
-                    var mouseY  = mouseXY[1];
-
-                    if (obj.coords.key && obj.coords.key.length) {
-                        for (var i=0; i<obj.coords.key.length; ++i) {
-                        
-                            var index = obj.coords.key.length - i - 1;
-
-                            var px = obj.coords.key[i][0];
-                            var py = obj.coords.key[i][1];
-                            var pw = obj.coords.key[i][2];
-                            var ph = obj.coords.key[i][3];
-
-                            if (mouseX > (px-2) && mouseX < (px + pw + 2) && mouseY > (py - 2) && mouseY < (py + ph + 2) && (obj.type == 'pie' ? obj.data[index] > 0 : 1)) {
-                                mouse_over_key = true;
-                                return;
-                            }
-                            
-                            mouse_over_key = false;
-    
-                            if (typeof(obj.Get('chart.tooltips')) == 'object' && typeof(canvas_onmousemove_func) == 'function') {
-                                canvas_onmousemove_func(e);
-                            }
-                        }
-                    }
-                }
-            }
-
-
-
-
-
-
-
-
-
-
-
-            InteractiveKey_line_mouseup = function (e)
-            {
-                //var obj = RGraph.ObjectRegistry.getObjectByXY(e);
-                var objects = RGraph.ObjectRegistry.getObjectsByCanvasID(e.target.id);
-                
-                for (var i=0; i<objects.length; ++i) {
-                
-                    var obj = objects[i]
-
-                    if (!RGraph.is_null(obj) && obj.type == 'line') {
-    
-                        var mouseXY = RGraph.getMouseXY(e);
-                        var mouseX  = mouseXY[0];
-                        var mouseY  = mouseXY[1];
-    
-                        RGraph.DrawKey(obj, obj.Get('chart.key'), obj.Get('chart.colors'));
-                
-                        for (var i=0; i<obj.coords.key.length; ++i) {
-
-                            var px = obj.coords.key[i][0];
-                            var py = obj.coords.key[i][1];
-                            var pw = obj.coords.key[i][2];
-                            var ph = obj.coords.key[i][3];
-                
-                            if ( mouseX > (px - 2) && mouseX < (px + pw + 2) && mouseY > (py - 2) && mouseY < (py + ph + 2) ) {
-        
-                                /**
-                                * Redraw the chart
-                                */
-                                RGraph.RedrawCanvas(obj.canvas);
-    
-                                var index = obj.coords.key.length - i - 1;
-    
-                                // Cover the canvas...
-                                obj.context.beginPath();
-                                    obj.context.fillStyle = 'rgba(255,255,255,0.9)';
-                                    obj.context.rect(
-                                                     Math.round(obj.Get('chart.gutter.left')) - 1,
-                                                     Math.round(obj.Get('chart.gutter.top')) - 1,
-                                                     canvas.width - obj.properties['chart.gutter.left'] - obj.properties['chart.gutter.right'] + 2,
-                                                     canvas.height - obj.Get('chart.gutter.bottom') - obj.Get('chart.gutter.top') + 2
-                                                    );
-                                obj.context.fill();
-                                
-                                /**
-                                * Need to redraw the axes so that they appear on top
-                                */
-                                context.beginPath();
-                                    obj.DrawAxes();
-                                context.stroke();
-    
-                                // ...and highlight the line
-                                obj.context.beginPath();
-                                    if (obj.Get('chart.shadow')) {
-                                        if (typeof(obj.Get('chart.shadow.color')) == 'string') {
-                                            RGraph.SetShadow(obj, obj.Get('chart.shadow.color'), obj.Get('chart.shadow.offsetx'), obj.Get('chart.shadow.offsety'), obj.Get('chart.shadow.blur'));
-                                        } else {
-                                            RGraph.SetShadow(obj, obj.Get('chart.shadow.color')[obj.Get('chart.shadow.color').length - 1 - i], obj.Get('chart.shadow.offsetx'), obj.Get('chart.shadow.offsety'), obj.Get('chart.shadow.blur'));
-                                        }
-                                    }
-    
-                                    obj.context.strokeStyle = obj.Get('chart.colors')[index];
-                                    obj.context.lineWidth  = obj.Get('chart.linewidth');
-                                    if (obj.coords2 &&obj.coords2[index] &&obj.coords2[index].length) {
-                                        for (var j=0; j<obj.coords2[index].length; ++j) {
-                                            
-                                            var x     = obj.coords2[index][j][0];
-                                            var y     = obj.coords2[index][j][1];
-                                            var prevY = obj.coords2[index][j - 1] && obj.coords2[index][j - 1][1]
-                                        
-                                            if (j == 0 || y == null || prevY == null) {
-                                                obj.context.moveTo(x, y);
-                                            } else {
-                                                obj.context.lineTo(x, y);
-                                            }
-                                        }
-                                    }
-                                obj.context.stroke();
-        
-                                // Add the key highlight
-                                obj.context.lineWidth  = 1;
-                                obj.context.beginPath();
-                                    obj.context.strokeStyle = 'black';
-                                    obj.context.fillStyle   = 'white';
-                                    
-                                    RGraph.SetShadow(obj, 'rgba(0,0,0,0.5)', 0,0,10);
-        
-                                    obj.context.strokeRect(px - 2, py - 2, pw + 4, ph + 4);
-                                    obj.context.fillRect(px - 2, py - 2, pw + 4, ph + 4);
-        
-                                obj.context.stroke();
-                                obj.context.fill();
-        
-        
-                                RGraph.NoShadow(obj);
-        
-        
-                                obj.context.beginPath();
-                                    obj.context.fillStyle = obj.Get('chart.colors')[index];
-                                    obj.context.fillRect(px, py, blob_size, blob_size);
-                                obj.context.fill();
-        
-                                obj.context.beginPath();
-                                    obj.context.fillStyle = obj.Get('chart.text.color');
-                                
-                                    RGraph.Text2(obj, {'font':obj.Get('chart.text.font'),'size':obj.Get('chart.text.size'),'x':px + 5 + blob_size,'y':py + ph + 3,'text':obj.Get('chart.key')[obj.Get('chart.key').length - i - 1]});
-                                context.fill();
-        
-                
-                                obj.canvas.style.cursor = 'pointer';
-                                
-                                e.cancelBubble = true;
-                                e.stopPropagation();
-                            }
-                            
-                            canvas.style.cursor = 'default';
-                        }
-                    }
-                }
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            /**
-            * Interactive key mouseup for the pie
-            */
-            InteractiveKey_pie_mousemove = function (e)
-            {
-                // Simply call the line chart key mousemove function as it's the same
-                InteractiveKey_line_mousemove(e);
+            if (!RGraph.Drawing || !RGraph.Drawing.Rect) {
+                alert('[INTERACTIVE KEY] The drawing API Rect library does not appear to have been included (which the interactive key uses)');
             }
 
 
 
             /**
-            * This function handles the Pie chart interactive key (the click event)
-            * 
-            * @param object e The event object
+            * Check that the RGraph.common.dynamic.js file has been included
             */
-            InteractiveKey_pie_mouseup = function (e)
+            if (!RGraph.InstallWindowMousedownListener) {
+                alert('[INTERACTIVE KEY] The dynamic library does not appear to have been included');
+            }
+
+
+
+            // Determine the maximum width of the labels
+            for (var i=0,len=obj.coords.key.length,maxlen=0; i<len; i+=1) {
+                maxlen = Math.max(maxlen, obj.coords.key[i][2]);
+            }
+    
+
+            obj.coords.key.forEach(function (value, index, arr)
             {
-                // MUST go through all of the objects as the keys could be placed anywhere on the
-                // canvas - not just within the gutter region
-                var objects = RGraph.ObjectRegistry.objects.byCanvasID;
 
-                for (var i=0; i<objects.length; ++i) {
+                var rect = new RGraph.Drawing.Rect(obj.id,value[0], value[1], prop['chart.key.position'] == 'gutter' ? value[2] : maxlen, value[3])
+                    .Set('fillstyle', 'rgba(0,0,0,0)')
+                    .Draw();
+                
+                rect.onclick = function (e, shape)
+                {
+                    var co  = rect.context;
 
-                    if (objects[i][0] == e.target.id && objects[i][1].type == 'pie') {
-                        
-                        var obj = objects[i][1];
+                    co.fillStyle = prop['chart.key.interactive.highlight.label'];
+                    co.fillRect(shape.x, shape.y, shape.width, shape.height);
 
-                        var mouseXY = RGraph.getMouseXY(e);
-                        var mouseX  = mouseXY[0];
-                        var mouseY  = mouseXY[1];
-
-                        if (obj.coords.key && obj.coords.key.length) {
-                            
-                            // 28th Dec 2012 - Moved up to redraw the canvas before the loop so that there's always a "fresh" canvas to work with
-                            RGraph.RedrawCanvas(obj.canvas);
-                            
-                            for (var i=0; i<obj.coords.key.length; ++i) {
-    
-                                var index = obj.coords.key.length - i - 1;
-    
-                                var px = obj.coords.key[i][0];
-                                var py = obj.coords.key[i][1];
-                                var pw = obj.coords.key[i][2];
-                                var ph = obj.coords.key[i][3];
-        
-                                if (mouseX >= (px - 2) && mouseX <= (px + pw + 2) && mouseY >= (py - 2) && mouseY <= (py + ph + 2) && obj.data[index] > 0) {
-                                
-                                    // 28th Dec 2012 - Moved up to redraw the canvas before the loop so that there's always a "fresh" canvas to work with
-                                    //RGraph.RedrawCanvas(obj.canvas);
-    
-                                    // First cover the canvas in a semi-transparent layer
-                                    obj.context.beginPath();
-                                        obj.context.fillStyle = 'rgba(255,255,255,0.9)';
-                                        obj.context.rect(0,0,obj.canvas.width,obj.canvas.height);
-                                    obj.context.fill();
-                                    
-                                    // Highllight the segment
-                                    var segment = obj.angles[index];
-                                    
-                                    obj.context.beginPath();
-                                        RGraph.SetShadow(obj,'gray',0,0,15);
-                                        obj.context.fillStyle = obj.Get('chart.colors')[index];
-                                        obj.context.moveTo(obj.angles[index][2], obj.angles[index][3]);
-                                        obj.context.arc(obj.angles[index][2], obj.angles[index][3], obj.radius, segment[0], segment[1], false);
-                                    obj.context.closePath();
-                                    obj.context.fill();
-    
-                                    // Highlight the key
-                                    obj.context.lineWidth  = 1;
-                                    obj.context.beginPath();
-                                        obj.context.strokeStyle = 'black';
-                                        obj.context.fillStyle   = 'white';
-                                        
-                                        RGraph.SetShadow(obj, 'rgba(0,0,0,0.5)', 0,0,10);
-            
-                                        obj.context.strokeRect(px - 2, py - 2, pw + 4, ph + 4);
-                                        obj.context.fillRect(px - 2, py - 2, pw + 4, ph + 4);
-                                    obj.context.stroke();
-                                    obj.context.fill();
-                                    
-                                    // Turn off the shadow again
-                                    RGraph.NoShadow(obj);
-    
-                                    // Add the blob of color
-                                    obj.context.beginPath();
-                                        obj.context.fillStyle = obj.Get('chart.colors')[index];
-                                        obj.context.fillRect(px, py, blob_size, blob_size);
-                                    obj.context.fill();
-        
-                                    // And add the text
-                                    obj.context.beginPath();
-                                        obj.context.fillStyle = obj.Get('chart.text.color');
-                                    
-                                        RGraph.Text2(obj, {'font':obj.Get('chart.text.font'),'size':obj.Get('chart.text.size'), 'x':px + 5 + blob_size,'y':py + ph + 3,'text':obj.Get('chart.key')[obj.Get('chart.key').length - i - 1]});
-
-                                    context.fill();
-    
-                                    e.stopPropagation();
-                                    return;
-                                }
-                            }
-                        }
+                    if (typeof obj.interactiveKeyHighlight == 'function') {
+                        obj.interactiveKeyHighlight(index);
                     }
                 }
-            }
+                
+                rect.onmousemove = function (e, shape)
+                {
+                    e.target.style.cursor = 'pointer';
+                }
+            });
         }
     }
 
@@ -600,209 +586,15 @@ if (blob_shape == 'circle') {
 
 
 
-    /**
-    * This does the actual drawing of the key when it's in the gutter
-    * 
-    * @param object obj The graph object
-    * @param array  key The key items to draw
-    * @param array colors An aray of colors that the key will use
-    */
-    RGraph.DrawKey_gutter = function (obj, key, colors)
-    {
-        var canvas      = obj.canvas;
-        var context     = obj.context;
-        var text_size   = typeof(obj.Get('chart.key.text.size')) == 'number' ? obj.Get('chart.key.text.size') : obj.Get('chart.text.size');
-        var text_font   = obj.Get('chart.text.font');
-        
-        var gutterLeft   = obj.gutterLeft;
-        var gutterRight  = obj.gutterRight;
-        var gutterTop    = obj.gutterTop;
-        var gutterBottom = obj.gutterBottom;
-
-        var hpos        = ((obj.canvas.width - obj.gutterLeft - obj.gutterRight) / 2) + obj.gutterLeft;
-        var vpos        = gutterTop - text_size - 5;
-        var title       = obj.Get('chart.title');
-        var blob_size   = text_size; // The blob of color
-        var hmargin      = 8; // This is the size of the gaps between the blob of color and the text
-        var vmargin      = 4; // This is the vertical margin of the key
-        var fillstyle   = obj.Get('chart.key.background');
-        var strokestyle = '#999';
-        var length      = 0;
-
-
-
-        // Need to work out the length of the key first
-        context.font = text_size + 'pt ' + text_font;
-        for (i=0; i<key.length; ++i) {
-            length += hmargin;
-            length += blob_size;
-            length += hmargin;
-            length += context.measureText(key[i]).width;
-        }
-        length += hmargin;
-
-
-
-
-        /**
-        * Work out hpos since in the Pie it isn't necessarily dead center
-        */
-        if (obj.type == 'pie') {
-            if (obj.Get('chart.align') == 'left') {
-                var hpos = obj.radius + gutterLeft;
-                
-            } else if (obj.Get('chart.align') == 'right') {
-                var hpos = obj.canvas.width - obj.radius - gutterRight;
-
-            } else {
-                hpos = canvas.width / 2;
-            }
-        }
 
 
 
 
 
-        /**
-        * This makes the key centered
-        */  
-        hpos -= (length / 2);
-
-
-        /**
-        * Override the horizontal/vertical positioning
-        */
-        if (typeof(obj.Get('chart.key.position.x')) == 'number') {
-            hpos = obj.Get('chart.key.position.x');
-        }
-        if (typeof(obj.Get('chart.key.position.y')) == 'number') {
-            vpos = obj.Get('chart.key.position.y');
-        }
-
-
-
-        /**
-        * Draw the box that the key sits in
-        */
-        if (obj.Get('chart.key.position.gutter.boxed')) {
-
-            if (obj.Get('chart.key.shadow')) {
-                context.shadowColor   = obj.Get('chart.key.shadow.color');
-                context.shadowBlur    = obj.Get('chart.key.shadow.blur');
-                context.shadowOffsetX = obj.Get('chart.key.shadow.offsetx');
-                context.shadowOffsetY = obj.Get('chart.key.shadow.offsety');
-            }
-
-            
-            context.beginPath();
-                context.fillStyle = fillstyle;
-                context.strokeStyle = strokestyle;
-
-                if (obj.Get('chart.key.rounded')) {
-                    RGraph.strokedCurvyRect(context, hpos, vpos - vmargin, length, text_size + vmargin + vmargin)
-                    // Odd... RGraph.filledCurvyRect(context, hpos, vpos - vmargin, length, text_size + vmargin + vmargin);
-                } else {
-                    context.strokeRect(hpos, vpos - vmargin, length, text_size + vmargin + vmargin);
-                    context.fillRect(hpos, vpos - vmargin, length, text_size + vmargin + vmargin);
-                }
-                
-            context.stroke();
-            context.fill();
-
-
-            RGraph.NoShadow(obj);
-        }
-
-
-        /**
-        * Draw the blobs of color and the text
-        */
-
-        // Custom colors for the key
-        if (obj.Get('chart.key.colors')) {
-            colors = obj.Get('chart.key.colors');
-        }
-
-        for (var i=0, pos=hpos; i<key.length; ++i) {
-            pos += hmargin;
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-            // Draw the blob of color
-            if (typeof(obj.properties['chart.key.color.shape']) == 'object' && typeof(obj.properties['chart.key.color.shape'][i]) == 'string') {
-                var blob_shape = obj.properties['chart.key.color.shape'][i];
-            
-            } else if (typeof(obj.properties['chart.key.color.shape']) == 'string') {
-                var blob_shape = obj.properties['chart.key.color.shape'];
-            
-            } else {
-                var blob_shape = 'square';
-            }
-            
-            
-            /**
-            * Draw the blob of color - line
-            */
-            if (blob_shape =='line') {
-                
-                context.beginPath();
-                    context.strokeStyle = colors[i];
-                    context.moveTo(pos, vpos + (blob_size / 2));
-                    context.lineTo(pos + blob_size, vpos + (blob_size / 2));
-                context.stroke();
-                
-            // Circle
-            } else if (blob_shape == 'circle') {
-                
-                context.beginPath();
-                    context.fillStyle = colors[i];
-                    context.moveTo(pos, vpos + (blob_size / 2));
-                    context.arc(pos + (blob_size / 2), vpos + (blob_size / 2), (blob_size / 2), 0, 6.28, 0);
-                context.fill();
-            
-            } else if (blob_shape == 'triangle') {
-            
-                context.fillStyle = colors[i];
-                context.beginPath();
-                    context.strokeStyle = colors[i];
-                    context.moveTo(pos, vpos + blob_size);
-                    context.lineTo(pos + (blob_size / 2), vpos);
-                    context.lineTo(pos + blob_size, vpos + blob_size);
-                context.closePath();
-                context.fill();
-            
-            } else {
-            
-                context.beginPath();
-                    context.fillStyle = colors[i];
-                    context.rect(pos, vpos, blob_size, blob_size);
-                context.fill();
-            }
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
 
-            pos += blob_size;
-            
-            pos += hmargin;
-
-            context.beginPath();
-                context.fillStyle = 'black';
-                RGraph.Text2(obj, {'font':text_font,'size':text_size,'x':pos,'y':vpos + text_size + 3, 'text': key[i]});
-            context.fill();
-            pos += context.measureText(key[i]).width;
-        }
-    }
-    
-    
     /**
     * Returns the key length, but accounts for null values
     * 

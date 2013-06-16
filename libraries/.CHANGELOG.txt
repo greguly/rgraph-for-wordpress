@@ -3,6 +3,66 @@
  | The RGraph CHANGELOG |
  +----------------------+
 
+ 1st June 2013
+ =============
+  o [API] Added the forEach() function to the Array prototype
+  o [AJAX] Added methods to help with AJAX datatypes:
+            RGraph.AJAX.getNumber()
+            RGraph.AJAX.getString()
+            RGraph.AJAX.getCSV()
+            RGraph.AJAX.getJSON()
+  o [BASIC] A new basic example of dynamic updates using AJAX has been added:
+            http://dev.rgraph.net/docs/basic-ajax-dynamic-updates.html
+  o [BACKGROUND] Added examples of a dotted and dashed background grid to:
+                  o Bar
+                  o Gantt
+                  o HBar
+                  o Line
+                  o Scatter
+                  o Waterfall
+  o [BAR] The Bar chart now supports null data entries. If you use null entries you will need to account for them in other
+          arrays - such as tooltips
+  o [BLOG] The blog article showing drag 'n' drop between canvas tags has been updated to use
+           "Click to pick up, click to put down: http://www.rgraph.net/blog/2013/january/an-example-of-html5-canvas-drag-n-drop.html
+  o [DEMOS] The border example has been updated: http://www.rgraph.net/demos/pie-border.html
+  o [DEMOS] All of the demos have been converted to use method chaining
+  o [DRAWING.MARKER2] The logic for determining left/right alignment has been improved
+  o [DRAWING.YAXIS] Added chart.labels.specific
+  o [DRAWING.YAXIS] Fixed title positioning with longer labels: http://dev.rgraph.net/fiddle/view/3d54060b34ebddd225f3e7a2ce3fef10
+  o [DRAWING.API IMAGE] Added horizontal and vertical align
+  o [DRAWING.API POLY] Added a poly object (short for polygon) which allows you to add irregular shapes to your charts
+  o [DRAWING.API POLY] Added a demo of using the Poly object to make a filled range clickable:
+                        http://www.rgraph.net/demos/line-range-clickable.html
+  o [EFFECTS] Added a RevealCircular effect
+  o [INTERNAL] All libraries have been updated so that methods are now assigned in the constructor instead of being added to
+               each objects prototype. This will mean that it will be much easier to leverage the parent functions (which in
+               this case is now the constructor) local variables. The variables in question are RG, ca, co and prop. These
+               represent the generic RGraph object, the canvas, the context and the objects properties.
+  o [KEY] The keu in gutter mode is now unboxed by default
+  o [LICENSE] Added single site license option which is for a single non-dynamic websie (£99)
+  o [LINE] Fixed chart.outofbounds bug
+  o [LINE] Fixed a tickmark bug for null values
+  o [LINE] Added support for thresholds in filled line range charts - like these demos show:
+            o http://dev.rgraph.net/demos/line-dual-color-range.html
+            o http://dev.rgraph.net/demos/line-dynamic-updates-range.html
+  o [MARKER2] The left/right positioning has been fixed to not change on redraws
+  o [MISC] Rewrote the code that controls the Bar, Line and Scatter chat horizontal bars.
+  o [MISC] Added facility similar to jsFiddle to help with showing examples. Eg:
+            http://dev.rgraph.net/fiddle/view/a856c3cbbdacc999d901bb3f092656f2
+  o [OBJECTREGISTRY] Added RGraph.ObjectRegistry.bringToFront() function - which will remove an object from the object registry
+                     and then readd it so that it's "at the front" of the drawing order
+  o [RADAR] You can now give multiple datasets as one big argument instead of as seperate arguments to th constructor. Eg:
+             myRadar = new RGraph.Radar('cvs', [[4,8,5,6,1,2,3],[5,4,6,8,7,4,4],[1,3,5,4,2,3,2]]);
+  o [RSCATTER] The RScatter now supports multiple datasets like the Scatter chart does:
+                   
+                   var rscatter = new RGraph.RScatter('cvs', [[315,10],[315,15],[315,20]], [[45,10],[45,15],[45,20]]);
+               or: var rscatter = new RGraph.RScatter('cvs', [[[315,10],[315,15],[315,20]], [[45,10],[45,15],[45,20]]]);
+
+               You can either specify each dataset as a seperate asrgument to the constructor or all datasets as one big array just
+               like the Scatter chart.
+  o [SUPPORT] You can now ask support questions on stackoverflow.com if you prefer
+  o [WATERFALL] chart.background.hbars has now been implemented
+
  31st March 2013
  ===============
   o [API] Added X axis drawing API object

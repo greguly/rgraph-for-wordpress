@@ -29,13 +29,13 @@
             // Get the object from the canvas. Annotating must be enabled on the
             // last object defined
             var obj = e.target.__object__;
-            
-            // This staarts the annotating "path" and set the color
+
+            // This starts the annotating "path" and set the color
             obj.context.beginPath();
 
                 obj.context.strokeStyle = obj.Get('chart.annotate.color');
                 obj.context.lineWidth = 1;
-            
+
                 var mouseXY = RGraph.getMouseXY(e);
                 var mouseX  = mouseXY[0];
                 var mouseY  = mouseXY[1];
@@ -45,6 +45,7 @@
     
                 // This sets the initial X/Y position
                 obj.context.moveTo(mouseX, mouseY);
+                RGraph.Registry.Set('annotate.last.coordinates', [mouseX,mouseY]);
                 
                 RGraph.Registry.Set('started.annotating', false);
                 RGraph.Registry.Set('chart.annotating', obj);
@@ -55,6 +56,8 @@
         
         return false;
     }
+
+
 
 
     /**
@@ -96,24 +99,40 @@
     }
 
 
+
+
     /**
     * The canvas onmousemove function
     */
     RGraph.Annotating_canvas_onmousemove = function (e)
     {
-        var e       = RGraph.FixEventObject(e);
         var obj     = e.target.__object__;
         var mouseXY = RGraph.getMouseXY(e);
         var mouseX  = mouseXY[0];
         var mouseY  = mouseXY[1];
-        
+        var lastXY = RGraph.Registry.Get('annotate.last.coordinates');
+
         if (obj.Get('chart.mousedown')) {
-            obj.context.lineTo(mouseX, mouseY);
+            
+            obj.context.beginPath();
+            
+            if (!lastXY) {
+                obj.context.moveTo(mouseX, mouseY)
+            } else {
+                obj.context.strokeStyle = obj.properties['chart.annotate.color'];
+                obj.context.moveTo(lastXY[0], lastXY[1]);
+                obj.context.lineTo(mouseX, mouseY);
+            }
+
             RGraph.Registry.Set('annotate.actions', RGraph.Registry.Get('annotate.actions') + '|' + mouseX + ',' + mouseY);
+            RGraph.Registry.Set('annotate.last.coordinates', [mouseX,mouseY]);
+
             RGraph.FireCustomEvent(obj, 'onannotate');
             obj.context.stroke();
         }
     }
+
+
 
 
     /**

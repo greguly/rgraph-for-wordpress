@@ -38,6 +38,7 @@
     RGraph.Effects.jQuery.HScissors = {}; RGraph.Effects.jQuery.VScissors = {}
 
 
+
     /**
     * Fadein
     * 
@@ -328,6 +329,7 @@
     }
 
 
+
     /**
     * Reveal
     * 
@@ -400,6 +402,62 @@
             setTimeout(arguments[2], delay);
         }
     }
+
+
+
+    /**
+    * RevealCircular
+    * 
+    * This effect is smilar to the Reveal effect - the canvas is slowly revealed from
+    * the centre outwards using a circular shape
+    * 
+    * @param object   obj The chart object
+    * @param object       An object of options
+    * @param function     An optional callback function that runs when the effect is finished
+    */
+    RGraph.Effects.RevealCircular = function (obj)
+    {
+        var opts      = arguments[1] ? arguments[1] : null;
+        var callback  = arguments[2] ? arguments[2] : null;
+        var frames    = 30;
+        var RG        = RGraph;
+        var ca        = obj.canvas;
+        var co        = obj.context;
+        var ra        = 0; // The initial radius of the circle that is clipped to
+        var cx        = ca.width / 2;
+        var cy        = ca.height / 2;
+        var target_ra = Math.max(ca.height, ca.width);
+        
+        // This is the iterator function which gradually increases the radius of the clip circle
+        function Grow ()
+        {
+            // Begin by clearing the canvas
+            RG.Clear(ca);
+
+            co.save();
+                // First draw the circle and clip to it
+                co.beginPath();
+                co.arc(cx, cy, ra, 0, TWOPI, false);
+                co.clip();
+                
+                // Now draw the chart
+                obj.Draw();
+            co.restore();
+
+
+            // Increment the radius
+            if (ra < target_ra) {
+                ra += target_ra / 30;
+                RG.Effects.UpdateCanvas(Grow);
+            
+            } else if (typeof(callback) == 'function') {
+                callback(obj);
+            }
+        }
+        
+        Grow();
+    }
+
 
 
     /**
@@ -2108,6 +2166,7 @@
             }
 
         } else {
+
             var diff = obj.value - Number(obj.currentValue);
             var increment = diff  / numFrames;
         }
@@ -2610,6 +2669,7 @@
     }
 
 
+
     /**
     * Horizontal Scissors (open)
     * 
@@ -2720,6 +2780,7 @@
             setTimeout(arguments[2], delay);
         }
     }
+
 
 
     /**

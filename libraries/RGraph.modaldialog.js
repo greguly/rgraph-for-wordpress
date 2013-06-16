@@ -44,8 +44,10 @@
         }
         ModalDialog.FireCustomEvent('onmodaldialog');
     }
-    
-    
+
+
+
+
     /**
     * Shows the background semi-transparent darkened DIV
     */
@@ -68,6 +70,8 @@
 
         ModalDialog.background.style.visibility = 'visible';
     }
+
+
 
 
     /**
@@ -177,7 +181,9 @@
         setTimeout('ModalDialog.background.style.opacity = 0.5', 250);
     }
 
-    
+
+
+
     /**
     * Hides everything
     */
@@ -203,11 +209,16 @@
             }
         }        
     }
-    
+
+
+
+
     // An alias
     ModalDialog.Hide = ModalDialog.Close
-    
-    
+
+
+
+
     /**
     * Accommodate the window being resized
     */
@@ -220,6 +231,8 @@
         ModalDialog.background.style.width  = '2500px';
         ModalDialog.background.style.height = '2500px';
     }
+
+
 
 
     /**
@@ -237,6 +250,8 @@
     }
 
 
+
+
     /**
     * Used to fire the ModalDialog custom event
     * 
@@ -251,6 +266,8 @@
             }
         }
     }
+
+
 
 
     /**

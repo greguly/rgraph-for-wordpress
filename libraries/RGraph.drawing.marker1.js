@@ -145,129 +145,139 @@
 
 
 
-        /**
-        * Objects are now always registered so that the chart is redrawn if need be.
-        */
-        RGraph.Register(this);
-    }
+
+        ///////////////////////////////// SHORT PROPERTIES /////////////////////////////////
 
 
 
 
-    /**
-    * A setter method for setting graph properties. It can be used like this: obj.Set('chart.strokestyle', '#666');
-    * 
-    * @param name  string The name of the property to set
-    * @param value mixed  The value of the property
-    */
-    RGraph.Drawing.Marker1.prototype.Set = function (name, value)
-    {
-        name = name.toLowerCase();
-
-        /**
-        * This should be done first - prepend the propertyy name with "chart." if necessary
-        */
-        if (name.substr(0,6) != 'chart.') {
-            name = 'chart.' + name;
-        }
-
-        this.properties[name] = value;
-
-        return this;
-    }
+        var RG   = RGraph;
+        var ca   = this.canvas;
+        var co   = ca.getContext('2d');
+        var prop = this.properties;
 
 
 
 
-    /**
-    * A getter method for retrieving graph properties. It can be used like this: obj.Get('chart.strokestyle');
-    * 
-    * @param name  string The name of the property to get
-    */
-    RGraph.Drawing.Marker1.prototype.Get = function (name)
-    {
-        /**
-        * This should be done first - prepend the property name with "chart." if necessary
-        */
-        if (name.substr(0,6) != 'chart.') {
-            name = 'chart.' + name;
-        }
-
-        return this.properties[name.toLowerCase()];
-    }
+        //////////////////////////////////// METHODS ///////////////////////////////////////
 
 
-
-
-    /**
-    * Draws the circle
-    */
-    RGraph.Drawing.Marker1.prototype.Draw = function ()
-    {
-        /**
-        * Fire the onbeforedraw event
-        */
-        RGraph.FireCustomEvent(this, 'onbeforedraw');
-        
-        var r = this.radius;
-
-        if (this.properties['chart.align'] == 'left') {
-
-            this.markerCenterx = this.centerx - r - r - 3;
-            this.markerCentery = this.centery - r - r - 3;
-        
-        } else if (this.properties['chart.align'] == 'right') {
-            
-            this.markerCenterx = this.centerx + r + r + 3;
-            this.markerCentery = this.centery - r - r - 3;
-
-        } else {
-
-            this.markerCenterx = this.centerx;
-            this.markerCentery = this.centery - r - r - 3;
-        }
-
-        /**
-        * Parse the colors. This allows for simple gradient syntax
-        */
-        if (!this.colorsParsed) {
-
-            this.parseColors();
-
-            // Don't want to do this again
-            this.colorsParsed = true;
-        }
 
 
         /**
-        * DRAW THE MARKER HERE
+        * A setter method for setting graph properties. It can be used like this: obj.Set('chart.strokestyle', '#666');
+        * 
+        * @param name  string The name of the property to set
+        * @param value mixed  The value of the property
         */
-        this.context.beginPath();
-        
-            if (this.properties['chart.shadow']) {
-                RGraph.SetShadow(this, this.properties['chart.shadow.color'], this.properties['chart.shadow.offsetx'], this.properties['chart.shadow.offsety'], this.properties['chart.shadow.blur']);
+        this.Set = function (name, value)
+        {
+            name = name.toLowerCase();
+    
+            /**
+            * This should be done first - prepend the propertyy name with "chart." if necessary
+            */
+            if (name.substr(0,6) != 'chart.') {
+                name = 'chart.' + name;
             }
-        
-            this.context.lineWidth   = this.properties['chart.linewidth'];
-            this.context.strokeStyle = this.properties['chart.strokestyle'];
-            this.context.fillStyle   = this.properties['chart.fillstyle'];
-        
-            // This function draws the actual marker
-            this.DrawMarker();
-        
-        
-        this.context.stroke();
-        this.context.fill();
-        
-        // Turn the shadow off
-        RGraph.NoShadow(this);
-        
-        // Now draw the text on the marker
-        this.context.fillStyle = this.properties['chart.text.color'];
-        
-        // Draw the text on the marker
-        RGraph.Text2(this, {'font':this.properties['chart.text.font'],
-                            'size':this.properties['chart.text.size'],
+    
+            prop[name] = value;
+    
+            return this;
+        }
+
+
+
+
+        /**
+        * A getter method for retrieving graph properties. It can be used like this: obj.Get('chart.strokestyle');
+        * 
+        * @param name  string The name of the property to get
+        */
+        this.Get = function (name)
+        {
+            /**
+            * This should be done first - prepend the property name with "chart." if necessary
+            */
+            if (name.substr(0,6) != 'chart.') {
+                name = 'chart.' + name;
+            }
+    
+            return prop[name.toLowerCase()];
+        }
+
+
+
+
+        /**
+        * Draws the circle
+        */
+        this.Draw = function ()
+        {
+            /**
+            * Fire the onbeforedraw event
+            */
+            RG.FireCustomEvent(this, 'onbeforedraw');
+            
+            var r = this.radius;
+    
+            if (prop['chart.align'] == 'left') {
+    
+                this.markerCenterx = this.centerx - r - r - 3;
+                this.markerCentery = this.centery - r - r - 3;
+            
+            } else if (prop['chart.align'] == 'right') {
+                
+                this.markerCenterx = this.centerx + r + r + 3;
+                this.markerCentery = this.centery - r - r - 3;
+    
+            } else {
+    
+                this.markerCenterx = this.centerx;
+                this.markerCentery = this.centery - r - r - 3;
+            }
+    
+            /**
+            * Parse the colors. This allows for simple gradient syntax
+            */
+            if (!this.colorsParsed) {
+    
+                this.parseColors();
+    
+                // Don't want to do this again
+                this.colorsParsed = true;
+            }
+    
+    
+            /**
+            * DRAW THE MARKER HERE
+            */
+            co.beginPath();
+            
+                if (prop['chart.shadow']) {
+                    RG.SetShadow(this, prop['chart.shadow.color'], prop['chart.shadow.offsetx'], prop['chart.shadow.offsety'], prop['chart.shadow.blur']);
+                }
+            
+                co.lineWidth   = prop['chart.linewidth'];
+                co.strokeStyle = prop['chart.strokestyle'];
+                co.fillStyle   = prop['chart.fillstyle'];
+            
+                // This function draws the actual marker
+                this.DrawMarker();
+            
+            
+            co.stroke();
+            co.fill();
+            
+            // Turn the shadow off
+            RG.NoShadow(this);
+            
+            // Now draw the text on the marker
+            co.fillStyle = prop['chart.text.color'];
+            
+            // Draw the text on the marker
+            RG.Text2(this, {'font':prop['chart.text.font'],
+                            'size':prop['chart.text.size'],
                             'x':this.coords[0][0] - 1,
                             'y':this.coords[0][1] - 1,
                             'text':this.text,
@@ -275,294 +285,309 @@
                             'halign':'center',
                             'tag': 'labels'
                            });
-
-        /**
-        * This installs the event listeners
-        */
-        RGraph.InstallEventListeners(this);
-
-
-        /**
-        * Fire the ondraw event
-        */
-        RGraph.FireCustomEvent(this, 'ondraw');
-        
-        return this;
-    }
-
-
-
-    /**
-    * The getObjectByXY() worker method
-    */
-    RGraph.Drawing.Marker1.prototype.getObjectByXY = function (e)
-    {
-        if (this.getShape(e)) {
+    
+            /**
+            * This installs the event listeners
+            */
+            RG.InstallEventListeners(this);
+    
+    
+            /**
+            * Fire the ondraw event
+            */
+            RG.FireCustomEvent(this, 'ondraw');
+            
             return this;
         }
-    }
 
 
 
-    /**
-    * Not used by the class during creating the shape, but is used by event handlers
-    * to get the coordinates (if any) of the selected bar
-    * 
-    * @param object e The event object
-    * @param object   OPTIONAL You can pass in the bar object instead of the
-    *                          function using "this"
-    */
-    RGraph.Drawing.Marker1.prototype.getShape = function (e)
-    {
-        var mouseXY = RGraph.getMouseXY(e);
-        var mouseX  = mouseXY[0];
-        var mouseY  = mouseXY[1];
+
+        /**
+        * The getObjectByXY() worker method
+        */
+        this.getObjectByXY = function (e)
+        {
+            if (this.getShape(e)) {
+                return this;
+            }
+        }
+
+
+
 
         /**
-        * Path the marker but DON'T STROKE OR FILL it
+        * Not used by the class during creating the shape, but is used by event handlers
+        * to get the coordinates (if any) of the selected bar
+        * 
+        * @param object e The event object
+        * @param object   OPTIONAL You can pass in the bar object instead of the
+        *                          function using "this"
         */
-        this.context.beginPath();
-        this.DrawMarker();
-
-        if (this.context.isPointInPath(mouseXY[0], mouseXY[1])) {
-
-            return {
-                    0: this, 1: this.coords[0][0], 2: this.coords[0][1], 3: this.coords[0][2], 4: 0,
-                    'object': this, 'x': this.coords[0][0], 'y': this.coords[0][1], 'radius': this.coords[0][2], 'index': 0, 'tooltip': this.properties['chart.tooltips'] ? this.properties['chart.tooltips'][0] : null
-                   };
-        }
-        
-        return null;
-    }
-
-
-
-    /**
-    * This function positions a tooltip when it is displayed
-    * 
-    * @param obj object     The chart object
-    * @param int x          The X coordinate specified for the tooltip
-    * @param int y          The Y coordinate specified for the tooltip
-    * @param object tooltip The tooltips DIV element
-    * @param number idx     The index of the tooltip
-    */
-    RGraph.Drawing.Marker1.prototype.positionTooltip = function (obj, x, y, tooltip, idx)
-    {
-        var canvasXY   = RGraph.getCanvasXY(obj.canvas);
-        var width      = tooltip.offsetWidth;
-        var height     = tooltip.offsetHeight;
-
-        // Set the top position
-        tooltip.style.left = 0;
-        tooltip.style.top  = canvasXY[1] + this.coords[0][1] - height - 7 - this.radius + 'px';
-
-        // By default any overflow is hidden
-        tooltip.style.overflow = '';
-
-        // The arrow
-        var img = new Image();
-            img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAFCAYAAACjKgd3AAAARUlEQVQYV2NkQAN79+797+RkhC4M5+/bd47B2dmZEVkBCgcmgcsgbAaA9GA1BCSBbhAuA/AagmwQPgMIGgIzCD0M0AMMAEFVIAa6UQgcAAAAAElFTkSuQmCC';
-            img.style.position = 'absolute';
-            img.id = '__rgraph_tooltip_pointer__';
-            img.style.top = (tooltip.offsetHeight - 2) + 'px';
-        tooltip.appendChild(img);
-        
-        // Reposition the tooltip if at the edges:
-        
-        // LEFT edge
-        if ((canvasXY[0] + obj.coords[0][0] + (obj.coords[0][2] / 2) - (width / 2)) < 10) {
-            tooltip.style.left = canvasXY[0] + this.markerCenterx - (width * 0.1) + 'px';
-            img.style.left = ((width * 0.1) - 8.5) + 'px';
-
-        // RIGHT edge
-        } else if ((canvasXY[0] + this.coords[0][0] + (this.coords[0][2] / 2) + (width / 2)) > document.body.offsetWidth) {
-            tooltip.style.left = canvasXY[0] + this.markerCenterx - (width * 0.9) + 'px';
-            img.style.left = ((width * 0.9) - 8.5) + 'px';
-
-        // Default positioning - CENTERED
-        } else {
-            tooltip.style.left = (canvasXY[0] + this.markerCenterx - (width * 0.5)) + 'px';
-            img.style.left = ((width * 0.5) - 8.5) + 'px';
-        }
-    }
-
-
-
-    /**
-    * Each object type has its own Highlight() function which highlights the appropriate shape
-    * 
-    * @param object shape The shape to highlight
-    */
-    RGraph.Drawing.Marker1.prototype.Highlight = function (shape)
-    {
-        this.context.beginPath();
-            this.context.strokeStyle = this.properties['chart.highlight.stroke'];
-            this.context.fillStyle = this.properties['chart.highlight.fill'];
+        this.getShape = function (e)
+        {
+            var mouseXY = RG.getMouseXY(e);
+            var mouseX  = mouseXY[0];
+            var mouseY  = mouseXY[1];
+    
+            /**
+            * Path the marker but DON'T STROKE OR FILL it
+            */
+            co.beginPath();
             this.DrawMarker();
-        this.context.closePath();
-        this.context.stroke();
-        this.context.fill();
-    }
+    
+            if (co.isPointInPath(mouseXY[0], mouseXY[1])) {
+    
+                return {
+                        0: this, 1: this.coords[0][0], 2: this.coords[0][1], 3: this.coords[0][2], 4: 0,
+                        'object': this, 'x': this.coords[0][0], 'y': this.coords[0][1], 'radius': this.coords[0][2], 'index': 0, 'tooltip': prop['chart.tooltips'] ? prop['chart.tooltips'][0] : null
+                       };
+            }
+            
+            return null;
+        }
 
 
 
-    /**
-    * This function is used to encapsulate the actual drawing of the marker. It
-    * intentional does not start a path or set colors.
-    */
-    RGraph.Drawing.Marker1.prototype.DrawMarker = function ()
-    {
-        var r = this.radius;
+
+        /**
+        * This function positions a tooltip when it is displayed
+        * 
+        * @param obj object     The chart object
+        * @param int x          The X coordinate specified for the tooltip
+        * @param int y          The Y coordinate specified for the tooltip
+        * @param object tooltip The tooltips DIV element
+        * @param number idx     The index of the tooltip
+        */
+        this.positionTooltip = function (obj, x, y, tooltip, idx)
+        {
+            var canvasXY   = RG.getCanvasXY(obj.canvas);
+            var width      = tooltip.offsetWidth;
+            var height     = tooltip.offsetHeight;
+    
+            // Set the top position
+            tooltip.style.left = 0;
+            tooltip.style.top  = canvasXY[1] + this.coords[0][1] - height - 7 - this.radius + 'px';
+    
+            // By default any overflow is hidden
+            tooltip.style.overflow = '';
+    
+            // The arrow
+            var img = new Image();
+                img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAAFCAYAAACjKgd3AAAARUlEQVQYV2NkQAN79+797+RkhC4M5+/bd47B2dmZEVkBCgcmgcsgbAaA9GA1BCSBbhAuA/AagmwQPgMIGgIzCD0M0AMMAEFVIAa6UQgcAAAAAElFTkSuQmCC';
+                img.style.position = 'absolute';
+                img.id = '__rgraph_tooltip_pointer__';
+                img.style.top = (tooltip.offsetHeight - 2) + 'px';
+            tooltip.appendChild(img);
+            
+            // Reposition the tooltip if at the edges:
+            
+            // LEFT edge
+            if ((canvasXY[0] + obj.coords[0][0] + (obj.coords[0][2] / 2) - (width / 2)) < 10) {
+                tooltip.style.left = canvasXY[0] + this.markerCenterx - (width * 0.1) + 'px';
+                img.style.left = ((width * 0.1) - 8.5) + 'px';
+    
+            // RIGHT edge
+            } else if ((canvasXY[0] + this.coords[0][0] + (this.coords[0][2] / 2) + (width / 2)) > document.body.offsetWidth) {
+                tooltip.style.left = canvasXY[0] + this.markerCenterx - (width * 0.9) + 'px';
+                img.style.left = ((width * 0.9) - 8.5) + 'px';
+    
+            // Default positioning - CENTERED
+            } else {
+                tooltip.style.left = (canvasXY[0] + this.markerCenterx - (width * 0.5)) + 'px';
+                img.style.left = ((width * 0.5) - 8.5) + 'px';
+            }
+        }
+
+
+
+
+        /**
+        * Each object type has its own Highlight() function which highlights the appropriate shape
+        * 
+        * @param object shape The shape to highlight
+        */
+        this.Highlight = function (shape)
+        {
+            if (prop['chart.tooltips.highlight']) {
+                co.beginPath();
+                    co.strokeStyle = prop['chart.highlight.stroke'];
+                    co.fillStyle = prop['chart.highlight.fill'];
+                    this.DrawMarker();
+                co.closePath();
+                co.stroke();
+                co.fill();
+            }
+        }
+
+
+
+
+        /**
+        * This function is used to encapsulate the actual drawing of the marker. It
+        * intentional does not start a path or set colors.
+        */
+        this.DrawMarker = function ()
+        {
+            var r = this.radius;
+            
+            if (prop['chart.align'] == 'left') {
+    
+                var x = this.markerCenterx;
+                var y = this.markerCentery;
         
-        if (this.properties['chart.align'] == 'left') {
-
-            var x = this.markerCenterx;
-            var y = this.markerCentery;
+                co.arc(x, y, r, HALFPI, TWOPI, false);
+                
+               // special case for MSIE 7/8
+                if (ISOLD) {
+                    co.moveTo(x + r + r, y+r+r);
+                    co.quadraticCurveTo(
+                                      x + r,
+                                      y + r,
+                                      x + r + 1,
+                                      y
+                                     );
+                    co.moveTo(x + r + r, y+r+r);
+                } else {
+                    co.quadraticCurveTo(
+                                        x + r,
+                                        y + r,
+                                        x + r + r,
+                                        y + r + r
+                                       );
+                }
     
-            this.context.arc(x, y, r, HALFPI, TWOPI, false);
-            
-           // special case for MSIE 7/8
-            if (RGraph.isOld()) {
-                this.context.moveTo(x + r + r, y+r+r);
-                this.context.quadraticCurveTo(
-                                  x + r,
-                                  y + r,
-                                  x + r + 1,
-                                  y
-                                 );
-                this.context.moveTo(x + r + r, y+r+r);
-            } else {
-                this.context.quadraticCurveTo(
-                                              x + r,
-                                              y + r,
-                                              x + r + r,
-                                              y + r + r
-                                             );
-            }
-
-            this.context.quadraticCurveTo(
-                                          x + r,
-                                          y + r,
-                                          x,
-                                          y + r + (RGraph.isOld() ? 1 : 0)
-                                         );
-        } else if (this.properties['chart.align'] == 'right') {
-
-            var x = this.markerCenterx;
-            var y = this.markerCentery;
+                co.quadraticCurveTo(
+                                    x + r,
+                                    y + r,
+                                    x,
+                                    y + r + (ISOLD ? 1 : 0)
+                                   );
+            } else if (prop['chart.align'] == 'right') {
     
-            this.context.arc(x, y, r, HALFPI, PI, true);
-
-           // special case for MSIE 7/8
-            if (RGraph.isOld()) {
-                this.context.moveTo(x - r - r, y+r+r);
-                this.context.quadraticCurveTo(
-                                  x - r,
-                                  y + r,
-                                  x - r - 1,
-                                  y
-                                 );
-                this.context.moveTo(x - r - r, y+r+r);
+                var x = this.markerCenterx;
+                var y = this.markerCentery;
+        
+                co.arc(x, y, r, HALFPI, PI, true);
+    
+               // special case for MSIE 7/8
+                if (ISOLD) {
+                    co.moveTo(x - r - r, y+r+r);
+                    co.quadraticCurveTo(
+                                      x - r,
+                                      y + r,
+                                      x - r - 1,
+                                      y
+                                     );
+                    co.moveTo(x - r - r, y+r+r);
+                } else {
+                    co.quadraticCurveTo(
+                                        x - r,
+                                        y + r,
+                                        x - r - r,
+                                        y + r + r
+                                       );
+                }
+    
+                co.quadraticCurveTo(
+                                    x - r,
+                                    y + r,
+                                    x,
+                                    y + r + (ISOLD ? 1 : 0)
+                                   );
+    
+            // Default is center
             } else {
-                this.context.quadraticCurveTo(
-                                              x - r,
-                                              y + r,
-                                              x - r - r,
-                                              y + r + r
-                                             );
-            }
-
-            this.context.quadraticCurveTo(
-                                          x - r,
-                                          y + r,
-                                          x,
-                                          y + r + (RGraph.isOld() ? 1 : 0)
-                                         );
-
-        // Default is center
-        } else {
-
-            var x = this.markerCenterx;
-            var y = this.markerCentery;
-
-            this.context.arc(x, y, r, HALFPI / 2, PI - (HALFPI / 2), true);
-            
-            // special case for MSIE 7/8
-            if (RGraph.isOld()) {
-                this.context.moveTo(x, y+r+r-2);
-                this.context.quadraticCurveTo(
+    
+                var x = this.markerCenterx;
+                var y = this.markerCentery;
+    
+                co.arc(x, y, r, HALFPI / 2, PI - (HALFPI / 2), true);
+                
+                // special case for MSIE 7/8
+                if (ISOLD) {
+                    co.moveTo(x, y+r+r-2);
+                    co.quadraticCurveTo(
+                                      x,
+                                      y + r + (r / 4),
+                                      x - (Math.cos(HALFPI / 2) * r),
+                                      y + (Math.sin(HALFPI / 2) * r)
+                                     );
+                    co.moveTo(x, y+r+r-2);
+                } else {
+                    co.quadraticCurveTo(
+                                      x,
+                                      y + r + (r / 4),
+                                      x,
+                                      y + r + r - 2 // The two is so that the marker is not touching the point
+                                     );
+                }
+    
+                co.quadraticCurveTo(
                                   x,
                                   y + r + (r / 4),
-                                  x - (Math.cos(HALFPI / 2) * r),
+                                  x + (Math.cos(HALFPI / 2) * r),
                                   y + (Math.sin(HALFPI / 2) * r)
                                  );
-                this.context.moveTo(x, y+r+r-2);
-            } else {
-                this.context.quadraticCurveTo(
-                                  x,
-                                  y + r + (r / 4),
-                                  x,
-                                  y + r + r - 2 // The two is so that the marker is not touching the point
-                                 );
             }
-
-            this.context.quadraticCurveTo(
-                              x,
-                              y + r + (r / 4),
-                              x + (Math.cos(HALFPI / 2) * r),
-                              y + (Math.sin(HALFPI / 2) * r)
-                             );
+    
+            this.coords[0] = [x, y, r];
         }
 
-        this.coords[0] = [x, y, r];
-    }
 
 
 
-    /**
-    * This allows for easy specification of gradients
-    */
-    RGraph.Drawing.Marker1.prototype.parseColors = function ()
-    {
         /**
-        * Parse various properties for colors
+        * This allows for easy specification of gradients
         */
-        this.properties['chart.fillstyle']        = this.parseSingleColorForGradient(this.properties['chart.fillstyle']);
-        this.properties['chart.strokestyle']      = this.parseSingleColorForGradient(this.properties['chart.strokestyle']);
-        this.properties['chart.highlight.stroke'] = this.parseSingleColorForGradient(this.properties['chart.highlight.stroke']);
-        this.properties['chart.highlight.fill']   = this.parseSingleColorForGradient(this.properties['chart.highlight.fill']);
-        this.properties['chart.text.color']       = this.parseSingleColorForGradient(this.properties['chart.text.color']);
-    }
-
-
-
-    /**
-    * This parses a single color value
-    */
-    RGraph.Drawing.Marker1.prototype.parseSingleColorForGradient = function (color)
-    {
-        var canvas  = this.canvas;
-        var context = this.context;
-        
-        if (!color || typeof(color) != 'string') {
-            return color;
+        this.parseColors = function ()
+        {
+            /**
+            * Parse various properties for colors
+            */
+            prop['chart.fillstyle']        = this.parseSingleColorForGradient(prop['chart.fillstyle']);
+            prop['chart.strokestyle']      = this.parseSingleColorForGradient(prop['chart.strokestyle']);
+            prop['chart.highlight.stroke'] = this.parseSingleColorForGradient(prop['chart.highlight.stroke']);
+            prop['chart.highlight.fill']   = this.parseSingleColorForGradient(prop['chart.highlight.fill']);
+            prop['chart.text.color']       = this.parseSingleColorForGradient(prop['chart.text.color']);
         }
 
-        if (color.match(/^gradient\((.*)\)$/i)) {
 
-            var parts = RegExp.$1.split(':');
 
-            // Create the gradient
-            var grad = context.createRadialGradient(this.markerCenterx, this.markerCentery, 0, this.markerCenterx, this.markerCentery, this.radius);
 
-            var diff = 1 / (parts.length - 1);
-
-            grad.addColorStop(0, RGraph.trim(parts[0]));
-
-            for (var j=1; j<parts.length; ++j) {
-                grad.addColorStop(j * diff, RGraph.trim(parts[j]));
+        /**
+        * This parses a single color value
+        */
+        this.parseSingleColorForGradient = function (color)
+        {
+            if (!color || typeof(color) != 'string') {
+                return color;
             }
+    
+            if (color.match(/^gradient\((.*)\)$/i)) {
+    
+                var parts = RegExp.$1.split(':');
+    
+                // Create the gradient
+                var grad = co.createRadialGradient(this.markerCenterx, this.markerCentery, 0, this.markerCenterx, this.markerCentery, this.radius);
+    
+                var diff = 1 / (parts.length - 1);
+    
+                grad.addColorStop(0, RG.trim(parts[0]));
+    
+                for (var j=1; j<parts.length; ++j) {
+                    grad.addColorStop(j * diff, RG.trim(parts[j]));
+                }
+            }
+    
+            return grad ? grad : color;
         }
 
-        return grad ? grad : color;
+
+
+
+        /**
+        * Objects are now always registered so that the chart is redrawn if need be.
+        */
+        RG.Register(this);
     }

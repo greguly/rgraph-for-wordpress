@@ -4,6 +4,31 @@
  +-----------------------------------------------+
 
 +---------------------------+
+| Stable release April 2013 |
++---------------------------+
+
+ o All of the chart libraries are changing how they add methods to objects. Currently the methods are added using the prototype method:
+    
+    RGraph.Fuel.prototype.Draw = function ()
+    {
+    }
+
+   However now the chart types will be moving to have the methods assigned in the constructor - for example:
+   
+   this.Draw = function ()
+   {
+   }
+   
+   From an end user perspective though nothing changes - the API remains the same - for example:
+   
+   var fuel = new RGraph.Fuel('cvs', 0,100,78);
+   fuel1.Draw();
+ o The Bipolar option chart.ylabels.count is now chart.labels.count
+ o The default value for chart.key.position.gutter.boxed has changed from true to false
+  o The Bar chart now supports null data entries. If you use null entries you will need to account for them in other
+    arrays - such as tooltips
+
++---------------------------+
 | Stable release March 2013 |
 +---------------------------+
 

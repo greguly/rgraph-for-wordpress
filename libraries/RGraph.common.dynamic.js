@@ -178,8 +178,7 @@
                         
                         var obj = objects[i];
                         var id  = objects[i].id;
-    
-    
+
     
                         // =========================================================================
                         // Tooltips
@@ -264,15 +263,6 @@
                             break;
                         }
                     }
-            
-        
-                    // =========================================================================
-                    // Interactive key
-                    // ========================================================================
-        
-    
-                    if (typeof(InteractiveKey_line_mouseup) == 'function') InteractiveKey_line_mouseup(e);
-                    if (typeof(InteractiveKey_pie_mouseup) == 'function')  InteractiveKey_pie_mouseup(e);
                 }
             }
             obj.canvas.addEventListener('mouseup', func, false);
@@ -281,6 +271,7 @@
             obj.canvas.__rgraph_mouseup_event_listener_installed__ = func;
         }
     }
+
 
 
 
@@ -301,7 +292,7 @@
                 e = RGraph.FixEventObject(e);
     
     
-    
+
                 /**
                 * First fire the user specified onmousemove listener if there is any
                 */
@@ -316,20 +307,20 @@
                 */
                 var objects = RGraph.ObjectRegistry.getObjectsByXY(e);
                 //var objects = RGraph.ObjectRegistry.getObjectsByCanvasID(e.target.id);
-    
+
                 if (objects && objects.length) {
                     for (var i=0; i<objects.length; ++i) {
     
                         var obj = objects[i];
                         var id  = obj.id;
-    
+
                         if (!obj.getShape) {
                             continue;
                         }
     
-    
+
                         var shape = obj.getShape(e);
-    
+
     
                         // ================================================================================================ //
                         // This facilitates the chart.events.mousemove option
@@ -377,13 +368,13 @@
                         // Tooltips
                         // ================================================================================================ //
     
-    
+
                         if (   shape
                             && (obj.Get('chart.tooltips') && obj.Get('chart.tooltips')[shape['index']] || shape['tooltip'])
                             && (obj.Get('chart.tooltips.event') == 'onmousemove' || obj.Get('chart.tooltips.event') == 'mousemove')
                             && (RGraph.is_null(RGraph.Registry.Get('chart.tooltip')) || RGraph.Registry.Get('chart.tooltip').__index__ != shape['index'] || (typeof(shape['dataset']) == 'number' && shape['dataset'] != RGraph.Registry.Get('chart.tooltip').__shape__['dataset']) || obj.uid != RGraph.Registry.Get('chart.tooltip').__object__.uid)
                            ) {
-    
+
                             RGraph.Clear(obj.canvas);
                             RGraph.Redraw();
                             obj.canvas.__rgraph_mouseup_event_listener_installed__(e);
@@ -493,7 +484,7 @@
     
                 if (obj) {
 
-                    var id    = obj.id;
+                    var id = obj.id;
     
                     /*************************************************************
                     * Handle adjusting for all object types
