@@ -3,8 +3,8 @@
 Plugin Name: RGraph for WordPress
 Plugin URI: http://omniwp.com.br/plugins/
 Description: RGraph for WordPress: Brings "RGraph - Free HTML5 and JavaScript charts" to WordPress, e.g. you can draw graphics with JavaScript :-)
-Version: 1.0
-Author: omniWP
+Version: 2.0
+Author: Gabriel Reguly,omniWP
 Author URI: http://www.omniwp.com.br/
 License: GPL2
 
@@ -166,13 +166,14 @@ function rgraph_for_wordpress_shortcode($attr, $content) {
 	//this is what the HTML entities should be	
 	$entities = array( "'" , "'", "'" );                         
 	//now replace the entities with the correct form
-	$content = str_replace( $html_entities , $entities , $content ); 
-	
+	$content = str_replace( $html_entities , $entities , $content ); 	
 	$replacement = array( "<br />", "<br>", "<p>", "</p>" );
-	echo str_replace( $replacement, '', $content ); // replace those strings to nothing
+
+	echo str_replace( $replacement, '', $content ); // replace those trings to nothing
 	
 	echo '</script>';
 }
+
 add_shortcode( 'rgraph', 'rgraph_for_wordpress_shortcode' );
 add_shortcode( 'RGraph', 'rgraph_for_wordpress_shortcode' ); // and RGraph (notice the caps)
 ?>
